@@ -1,0 +1,12 @@
+# Personal config — machine-specific, not for sharing
+.mcp.json
+.claude/
+
+# Python cache files — generated automatically, never commit these
+__pycache__/
+*.pyc
+*.pyo
+
+# OS junk
+.DS_Store
+Thumbs.db
