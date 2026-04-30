@@ -163,6 +163,135 @@ class SessionCommands:
         return {"playing": self._song.is_playing}
 
     # -------------------------------------------------------------------------
+    # Undo / redo
+    # -------------------------------------------------------------------------
+
+    def _undo(self):
+        if not self._song.can_undo:
+            raise Exception("Nothing to undo")
+        self._song.undo()
+        return {"undone": True}
+
+    def _redo(self):
+        if not self._song.can_redo:
+            raise Exception("Nothing to redo")
+        self._song.redo()
+        return {"redone": True}
+
+    # -------------------------------------------------------------------------
+    # Track creation / deletion
+    # -------------------------------------------------------------------------
+
+    def _create_audio_track(self, index):
+        self._song.create_audio_track(index)
+        new_index = len(self._song.tracks) - 1 if index == -1 else index
+        new_track = self._song.tracks[new_index]
+        return {"index": new_index, "name": new_track.name}
+
+    def _create_return_track(self):
+        self._song.create_return_track()
+        new_index = len(self._song.return_tracks) - 1
+        new_track = self._song.return_tracks[new_index]
+        return {"index": new_index, "name": new_track.name}
+
+    def _delete_track(self, track_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        self._song.delete_track(track_index)
+        return {"deleted": True, "track_count": len(self._song.tracks)}
+
+    def _duplicate_track(self, track_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        self._song.duplicate_track(track_index)
+        new_index = track_index + 1
+        new_track = self._song.tracks[new_index]
+        return {"original_index": track_index, "new_index": new_index, "name": new_track.name}
+
+    # -------------------------------------------------------------------------
+    # Track property setters
+    # -------------------------------------------------------------------------
+
+    def _set_track_color(self, track_index, color):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.color = color
+        return {"color": track.color}
+
+    def _set_track_mute(self, track_index, mute):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.mute = mute
+        return {"mute": track.mute}
+
+    def _set_track_solo(self, track_index, solo):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.solo = solo
+        return {"solo": track.solo}
+
+    def _set_track_arm(self, track_index, arm):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.arm = arm
+        return {"arm": track.arm}
+
+    def _set_track_volume(self, track_index, volume):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.mixer_device.volume.value = volume
+        return {"volume": track.mixer_device.volume.value}
+
+    def _set_track_pan(self, track_index, panning):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        track.mixer_device.panning.value = panning
+        return {"panning": track.mixer_device.panning.value}
+
+    # -------------------------------------------------------------------------
+    # Send routing
+    # -------------------------------------------------------------------------
+
+    def _get_track_sends(self, track_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        sends = [
+            {"index": i, "name": send.name, "value": send.value}
+            for i, send in enumerate(track.mixer_device.sends)
+        ]
+        return {"sends": sends, "count": len(sends)}
+
+    def _set_track_send(self, track_index, send_index, value):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        sends = list(track.mixer_device.sends)
+        if send_index < 0 or send_index >= len(sends):
+            raise IndexError("Send index out of range")
+        sends[send_index].value = value
+        return {"send_index": send_index, "value": sends[send_index].value}
+
+    # -------------------------------------------------------------------------
+    # Device deletion
+    # -------------------------------------------------------------------------
+
+    def _delete_device(self, track_index, device_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        if device_index < 0 or device_index >= len(track.devices):
+            raise IndexError("Device index out of range")
+        track.delete_device(device_index)
+        return {"deleted": True, "device_count": len(track.devices)}
+
+    # -------------------------------------------------------------------------
     # Device helper (shared)
     # -------------------------------------------------------------------------
 

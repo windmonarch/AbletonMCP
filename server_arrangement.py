@@ -11,6 +11,7 @@ from ableton.connection import get_ableton_connection, shutdown_connection
 import ableton.tools_session as tools_session
 import ableton.tools_arrangement as tools_arrangement
 import ableton.tools_browser as tools_browser
+import ableton.tools_devices as tools_devices
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +41,7 @@ mcp = FastMCP("AbletonMCP", lifespan=server_lifespan)
 tools_session.register(mcp)
 tools_arrangement.register(mcp)
 tools_browser.register(mcp)
+tools_devices.register(mcp)
 
 
 def main():

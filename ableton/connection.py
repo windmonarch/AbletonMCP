@@ -26,6 +26,26 @@ MODIFYING_COMMANDS: set = {
     "load_instrument_or_effect",
     "add_notes_to_arrangement_clip",
     "set_arrangement_clip_name",
+    # New write commands
+    "jump_to_cue",
+    "undo",
+    "redo",
+    "create_return_track",
+    "delete_track",
+    "duplicate_track",
+    "set_track_color",
+    "set_track_mute",
+    "set_track_solo",
+    "set_track_arm",
+    "set_track_volume",
+    "set_track_pan",
+    "set_track_send",
+    "delete_device",
+    "remove_notes_from_clip",
+    "set_clip_color",
+    "set_clip_pitch",
+    "set_clip_gain",
+    "set_clip_markers",
 }
 
 

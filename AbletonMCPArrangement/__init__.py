@@ -15,6 +15,7 @@ import queue
 from .commands_session import SessionCommands
 from .commands_arrangement import ArrangementCommands
 from .commands_browser import BrowserCommands
+from .commands_devices import DeviceCommands
 
 DEFAULT_PORT = 9877
 HOST = "localhost"
@@ -24,7 +25,7 @@ def create_instance(c_instance):
     return AbletonMCPArrangement(c_instance)
 
 
-class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommands, ControlSurface):
+class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommands, DeviceCommands, ControlSurface):
 
     def __init__(self, c_instance):
         ControlSurface.__init__(self, c_instance)
@@ -69,6 +70,12 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             "get_browser_tree":          lambda p: self.get_browser_tree(p.get("category_type", "all")),
             "get_browser_items_at_path": lambda p: self.get_browser_items_at_path(p.get("path", "")),
             "get_browser_item":          lambda p: self._get_browser_item(p.get("uri"), p.get("path")),
+            "get_cue_points":            lambda p: self._get_cue_points(),
+            "get_current_song_time":     lambda p: self._get_current_song_time(),
+            "get_track_sends":           lambda p: self._get_track_sends(p.get("track_index", 0)),
+            "get_clip_notes":            lambda p: self._get_clip_notes(p.get("track_index", 0), p.get("clip_index", 0)),
+            "get_device_parameters":     lambda p: self._get_device_parameters(p.get("track_index", 0), p.get("device_index", 0)),
+            "get_drum_pads":             lambda p: self._get_drum_pads(p.get("track_index", 0), p.get("device_index", 0)),
         }
 
         self.WRITE_DISPATCH = {
@@ -85,6 +92,28 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             "load_browser_item":              lambda p: self._load_browser_item(p.get("track_index", 0), p.get("item_uri", "")),
             "add_notes_to_arrangement_clip":  lambda p: self._add_notes_to_arrangement_clip(p.get("track_index", 0), p.get("clip_index", 0), p.get("notes", [])),
             "set_arrangement_clip_name":      lambda p: self._set_arrangement_clip_name(p.get("track_index", 0), p.get("clip_index", 0), p.get("name", "")),
+            # New commands
+            "jump_to_cue":            lambda p: self._jump_to_cue(p.get("direction", "next")),
+            "undo":                   lambda p: self._undo(),
+            "redo":                   lambda p: self._redo(),
+            "create_audio_track":     lambda p: self._create_audio_track(p.get("index", -1)),
+            "create_return_track":    lambda p: self._create_return_track(),
+            "delete_track":           lambda p: self._delete_track(p.get("track_index", 0)),
+            "duplicate_track":        lambda p: self._duplicate_track(p.get("track_index", 0)),
+            "set_track_color":        lambda p: self._set_track_color(p.get("track_index", 0), p.get("color", 0)),
+            "set_track_mute":         lambda p: self._set_track_mute(p.get("track_index", 0), p.get("mute", False)),
+            "set_track_solo":         lambda p: self._set_track_solo(p.get("track_index", 0), p.get("solo", False)),
+            "set_track_arm":          lambda p: self._set_track_arm(p.get("track_index", 0), p.get("arm", False)),
+            "set_track_volume":       lambda p: self._set_track_volume(p.get("track_index", 0), p.get("volume", 0.85)),
+            "set_track_pan":          lambda p: self._set_track_pan(p.get("track_index", 0), p.get("panning", 0.0)),
+            "set_track_send":         lambda p: self._set_track_send(p.get("track_index", 0), p.get("send_index", 0), p.get("value", 0.0)),
+            "delete_device":          lambda p: self._delete_device(p.get("track_index", 0), p.get("device_index", 0)),
+            "remove_notes_from_clip": lambda p: self._remove_notes_from_clip(p.get("track_index", 0), p.get("clip_index", 0)),
+            "set_clip_color":         lambda p: self._set_clip_color(p.get("track_index", 0), p.get("clip_index", 0), p.get("color", 0)),
+            "set_clip_pitch":         lambda p: self._set_clip_pitch(p.get("track_index", 0), p.get("clip_index", 0), p.get("pitch_coarse", 0), p.get("pitch_fine")),
+            "set_clip_gain":          lambda p: self._set_clip_gain(p.get("track_index", 0), p.get("clip_index", 0), p.get("gain", 1.0)),
+            "set_clip_markers":       lambda p: self._set_clip_markers(p.get("track_index", 0), p.get("clip_index", 0), p.get("start_marker", 0.0), p.get("end_marker", 0.0)),
+            "set_device_parameter":   lambda p: self._set_device_parameter(p.get("track_index", 0), p.get("device_index", 0), p.get("param_index", 0), p.get("value", 0.0)),
         }
 
     # -------------------------------------------------------------------------

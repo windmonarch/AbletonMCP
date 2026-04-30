@@ -2,10 +2,11 @@
 .mcp.json
 .claude/
 
-# Python cache files — generated automatically, never commit these
+# Python cache files and build artifacts — generated automatically, never commit these
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 
 # OS junk
 .DS_Store

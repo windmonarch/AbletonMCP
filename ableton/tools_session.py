@@ -181,3 +181,224 @@ def register(mcp: FastMCP):
             return "Stopped playback"
         except Exception as e:
             return f"Error stopping playback: {str(e)}"
+
+    @mcp.tool()
+    def undo(ctx: Context) -> str:
+        """Undo the last action in Ableton."""
+        try:
+            get_ableton_connection().send_command("undo")
+            return "Undone"
+        except Exception as e:
+            return f"Error undoing: {str(e)}"
+
+    @mcp.tool()
+    def redo(ctx: Context) -> str:
+        """Redo the last undone action in Ableton."""
+        try:
+            get_ableton_connection().send_command("redo")
+            return "Redone"
+        except Exception as e:
+            return f"Error redoing: {str(e)}"
+
+    @mcp.tool()
+    def create_audio_track(ctx: Context, index: int = -1) -> str:
+        """
+        Create a new audio track in the Ableton session.
+
+        Parameters:
+        - index: The index to insert the track at (-1 = end of list)
+        """
+        try:
+            result = get_ableton_connection().send_command("create_audio_track", {"index": index})
+            return f"Created new audio track: {result.get('name', 'unknown')}"
+        except Exception as e:
+            return f"Error creating audio track: {str(e)}"
+
+    @mcp.tool()
+    def create_return_track(ctx: Context) -> str:
+        """Create a new return track in the Ableton session (always appended at the end)."""
+        try:
+            result = get_ableton_connection().send_command("create_return_track")
+            return f"Created new return track: {result.get('name', 'unknown')}"
+        except Exception as e:
+            return f"Error creating return track: {str(e)}"
+
+    @mcp.tool()
+    def delete_track(ctx: Context, track_index: int) -> str:
+        """
+        Delete a track from the Ableton session.
+
+        Parameters:
+        - track_index: The index of the track to delete (cannot delete return or master tracks)
+        """
+        try:
+            result = get_ableton_connection().send_command("delete_track", {
+                "track_index": track_index})
+            return f"Deleted track {track_index}. Session now has {result.get('track_count')} tracks."
+        except Exception as e:
+            return f"Error deleting track: {str(e)}"
+
+    @mcp.tool()
+    def duplicate_track(ctx: Context, track_index: int) -> str:
+        """
+        Duplicate a track in the Ableton session.
+
+        Parameters:
+        - track_index: The index of the track to duplicate
+        """
+        try:
+            result = get_ableton_connection().send_command("duplicate_track", {
+                "track_index": track_index})
+            return (f"Duplicated track {track_index}. "
+                    f"New track '{result.get('name')}' at index {result.get('new_index')}.")
+        except Exception as e:
+            return f"Error duplicating track: {str(e)}"
+
+    @mcp.tool()
+    def set_track_color(ctx: Context, track_index: int, color: int) -> str:
+        """
+        Set the color of a track.
+
+        Parameters:
+        - track_index: The index of the track
+        - color: RGB color as a packed integer (e.g. 0xFF0000 for red)
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_color", {
+                "track_index": track_index, "color": color})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track color: {str(e)}"
+
+    @mcp.tool()
+    def set_track_mute(ctx: Context, track_index: int, mute: bool) -> str:
+        """
+        Mute or unmute a track.
+
+        Parameters:
+        - track_index: The index of the track
+        - mute: True to mute, False to unmute
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_mute", {
+                "track_index": track_index, "mute": mute})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track mute: {str(e)}"
+
+    @mcp.tool()
+    def set_track_solo(ctx: Context, track_index: int, solo: bool) -> str:
+        """
+        Solo or unsolo a track.
+
+        Parameters:
+        - track_index: The index of the track
+        - solo: True to solo, False to unsolo
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_solo", {
+                "track_index": track_index, "solo": solo})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track solo: {str(e)}"
+
+    @mcp.tool()
+    def set_track_arm(ctx: Context, track_index: int, arm: bool) -> str:
+        """
+        Arm or disarm a track for recording. Only works on MIDI and audio tracks.
+
+        Parameters:
+        - track_index: The index of the track
+        - arm: True to arm, False to disarm
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_arm", {
+                "track_index": track_index, "arm": arm})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track arm: {str(e)}"
+
+    @mcp.tool()
+    def set_track_volume(ctx: Context, track_index: int, volume: float) -> str:
+        """
+        Set the volume of a track.
+
+        Parameters:
+        - track_index: The index of the track
+        - volume: Volume from 0.0 to 1.0 (0.85 = unity / 0 dB)
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_volume", {
+                "track_index": track_index, "volume": volume})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track volume: {str(e)}"
+
+    @mcp.tool()
+    def set_track_pan(ctx: Context, track_index: int, panning: float) -> str:
+        """
+        Set the panning of a track.
+
+        Parameters:
+        - track_index: The index of the track
+        - panning: Panning from -1.0 (full left) to 1.0 (full right), 0.0 = center
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_pan", {
+                "track_index": track_index, "panning": panning})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track pan: {str(e)}"
+
+    @mcp.tool()
+    def get_track_sends(ctx: Context, track_index: int) -> str:
+        """
+        Get all send levels for a track.
+
+        Parameters:
+        - track_index: The index of the track
+        """
+        try:
+            result = get_ableton_connection().send_command("get_track_sends", {
+                "track_index": track_index})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error getting track sends: {str(e)}"
+
+    @mcp.tool()
+    def set_track_send(
+        ctx: Context,
+        track_index: int,
+        send_index: int,
+        value: float
+    ) -> str:
+        """
+        Set the send level for a track to a return track.
+
+        Parameters:
+        - track_index: The index of the track
+        - send_index: The index of the send (corresponds to return track order)
+        - value: Send level from 0.0 to 1.0
+        """
+        try:
+            result = get_ableton_connection().send_command("set_track_send", {
+                "track_index": track_index, "send_index": send_index, "value": value})
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting track send: {str(e)}"
+
+    @mcp.tool()
+    def delete_device(ctx: Context, track_index: int, device_index: int) -> str:
+        """
+        Delete a device from a track's device chain.
+
+        Parameters:
+        - track_index: The index of the track
+        - device_index: The index of the device to delete
+        """
+        try:
+            result = get_ableton_connection().send_command("delete_device", {
+                "track_index": track_index, "device_index": device_index})
+            return f"Deleted device. Track now has {result.get('device_count')} device(s)."
+        except Exception as e:
+            return f"Error deleting device: {str(e)}"
