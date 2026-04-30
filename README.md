@@ -43,7 +43,18 @@ The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude
 
 ## Setup
 
-### Step 1 - Install the Remote Script
+### Step 1 - Clone the repo
+
+Clone this repo to your PC. This gives you both folders:
+
+- `ableton/` - the MCP server package, stays where you cloned it and runs on your PC
+- `AbletonMCPArrangement/` - the Ableton Remote Script, needs to be copied into Ableton in Step 2
+
+```powershell
+git clone https://github.com/windmonarch/AbletonMCP
+```
+
+### Step 2 - Install the Remote Script
 
 Copy the entire `AbletonMCPArrangement` folder (all 4 files) into your Ableton User Library:
 
@@ -61,9 +72,9 @@ The folder must contain all four files:
 
 Then in Ableton: **Preferences -> Link, Tempo & MIDI -> Control Surface** - select `AbletonMCPArrangement` and set Input and Output to `None`.
 
-### Step 2 - Configure Claude Code
+### Step 3 - Configure Claude Code
 
-Create a `.mcp.json` file in your project folder (the same folder where you cloned this repo). Replace the path in `cwd` with the actual path to the repo on your machine:
+Create a `.mcp.json` file inside the cloned repo folder. Replace the path in `cwd` with the actual path to where you cloned the repo on your machine:
 
 ```json
 {
@@ -93,7 +104,7 @@ For example, if you cloned to `C:\Users\John\Projects\AbletonMCP`:
 
 > **Note:** Windows paths in JSON require double backslashes `\\`. The `cwd` field is required - without it `uv` may not find the correct project files.
 
-### Step 3 - Start Claude Code
+### Step 4 - Start Claude Code
 
 Launch Claude Code from your project folder. It will automatically start the MCP server using the `.mcp.json` config. You should see the Ableton tools available in your Claude session.
 
