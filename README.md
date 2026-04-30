@@ -27,15 +27,17 @@ AbletonMCP connects Claude to a live Ableton session over a local socket connect
 
 ### 1. Install the Remote Script
 
-Copy the `AbletonMCPArrangement` folder into one of Ableton's MIDI Remote Scripts directories:
+Copy the `AbletonMCPArrangement` folder into your Ableton User Library:
 
 ```
-C:\Users\[Username]\AppData\Roaming\Ableton\Live 12.2.7\Preferences\User Remote Scripts\
-C:\ProgramData\Ableton\Live 12.2.7\Resources\MIDI Remote Scripts\
-C:\Program Files\Ableton\Live 12.2.7\Resources\MIDI Remote Scripts\
+C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\
 ```
 
 Then in Ableton: **Preferences → Link, Tempo & MIDI → Control Surface** — select `AbletonMCPArrangement` and set Input/Output to `None`.
+
+**To reload the script after making changes (no full restart needed):**
+1. Delete the `__pycache__` folder inside your deployed `AbletonMCPArrangement` folder
+2. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPArrangement`
 
 ### 2. Run the MCP server
 
