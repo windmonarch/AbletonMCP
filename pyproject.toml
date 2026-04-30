@@ -1,0 +1,21 @@
+[project]
+name = "ableton-mcp-arrangement"
+version = "1.0.0"
+description = "Ableton Live integration through the Model Context Protocol with Arrangement View support"
+authors = [{ name = "windmonarch" }]
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/windmonarch/AbletonMCP"
+Issues = "https://github.com/windmonarch/AbletonMCP/issues"
+
+[project.scripts]
+ableton-mcp = "server_arrangement:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"
