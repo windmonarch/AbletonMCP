@@ -16,9 +16,11 @@ AbletonMCP connects Claude to a live Ableton session over a local socket connect
 
 ## Requirements
 
+- Windows only - macOS and Linux are not supported at this time
 - Ableton Live 12.2.7 or newer
 - Python 3.12 or newer
 - [uv](https://docs.astral.sh/uv/) package manager
+- [Claude Code](https://claude.ai/code) - this project uses the MCP protocol which is only supported in Claude Code. It does not work with Claude.ai or any other Claude interface.
 
 ## Setup
 
@@ -31,10 +33,6 @@ C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\
 ```
 
 Then in Ableton: **Preferences → Link, Tempo & MIDI → Control Surface** - select `AbletonMCPArrangement` and set Input/Output to `None`.
-
-**To reload the script after making changes (no full restart needed):**
-1. Delete the `__pycache__` folder inside your deployed `AbletonMCPArrangement` folder
-2. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPArrangement`
 
 ### 2. Run the MCP server
 
@@ -83,6 +81,19 @@ For example, if you saved the file to `C:\Users\John\Projects\AbletonMCP\server_
 - `get_browser_tree` / `get_browser_items_at_path` - browse Ableton's device library
 - `fire_clip` / `stop_clip` - trigger or stop a clip
 - `start_playback` / `stop_playback` - transport control
+
+---
+
+## Troubleshooting
+
+### Changes to the remote script are not taking effect
+
+If you have modified `AbletonMCPArrangement/__init__.py` and Ableton is not picking up your changes, you do not need to fully restart Ableton. Instead:
+
+1. Delete the `__pycache__` folder inside your deployed `AbletonMCPArrangement` folder
+2. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPArrangement`
+
+> This only applies if you have edited the remote script code yourself. If you are using the script as-is from this repo, you will never need this.
 
 ---
 
