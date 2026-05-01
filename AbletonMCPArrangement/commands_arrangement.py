@@ -14,6 +14,8 @@ class ArrangementCommands:
         if track_index < 0 or track_index >= len(self._song.tracks):
             raise IndexError("Track index out of range")
         track = self._song.tracks[track_index]
+        if track.is_foldable:
+            return {"clips": [], "count": 0}
         clips = [
             {
                 "index": i,

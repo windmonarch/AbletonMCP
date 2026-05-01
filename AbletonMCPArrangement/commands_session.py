@@ -64,7 +64,7 @@ class SessionCommands:
             "is_midi_track": track.has_midi_input,
             "mute": track.mute,
             "solo": track.solo,
-            "arm": track.arm,
+            "arm": track.arm if track.can_be_armed else False,
             "volume": track.mixer_device.volume.value,
             "panning": track.mixer_device.panning.value,
             "clip_slots": clip_slots,
@@ -237,6 +237,8 @@ class SessionCommands:
         if track_index < 0 or track_index >= len(self._song.tracks):
             raise IndexError("Track index out of range")
         track = self._song.tracks[track_index]
+        if not track.can_be_armed:
+            raise RuntimeError("Track '{}' cannot be armed (Group tracks and return tracks do not support arming)".format(track.name))
         track.arm = arm
         return {"arm": track.arm}
 

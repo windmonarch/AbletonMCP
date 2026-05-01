@@ -89,7 +89,7 @@ def register(mcp: FastMCP):
         Parameters:
         - track_index: The index of the track to load on
         - rack_uri: URI of the drum rack to load
-        - kit_path: Browser path to the drum kit (e.g. 'drums/acoustic/kit1')
+        - kit_path: Browser path to the folder containing drum kits (e.g. 'drums' to load the first kit in the Drums category)
         """
         try:
             ableton = get_ableton_connection()
@@ -102,7 +102,11 @@ def register(mcp: FastMCP):
             if "error" in kit_result:
                 return f"Loaded drum rack but failed to find kit: {kit_result.get('error')}"
 
-            loadable = [i for i in kit_result.get("items", []) if i.get("is_loadable", False)]
+            # Filter for loadable preset files only (exclude devices like Drum Rack itself)
+            loadable = [
+                i for i in kit_result.get("items", [])
+                if i.get("is_loadable", False) and not i.get("is_device", False)
+            ]
             if not loadable:
                 return f"Loaded drum rack but no loadable kits found at '{kit_path}'"
 

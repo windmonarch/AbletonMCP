@@ -6,6 +6,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1] - 2026-05-01
+
+### Fixed
+- `get_track_info` no longer crashes when called on a Group track - the Live API throws an exception accessing `track.arm` on non-armable tracks; fixed by checking `track.can_be_armed` before reading the property
+- `set_track_arm` now raises a clear error when called on a Group track instead of propagating a Live API exception
+- `get_arrangement_clips` no longer crashes when called on a Group track - the Live API throws an exception accessing `track.arrangement_clips` on foldable tracks; fixed by returning an empty clip list for Group tracks
+- `load_drum_kit` no longer selects the Drum Rack device itself as the kit to load - the browser item filter now excludes entries where `is_device` is true, so only preset files (.adg) are considered
+
+---
+
 ## [1.2.0] - 2026-05-01
 
 ### Added

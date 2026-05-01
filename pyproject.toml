@@ -1,6 +1,6 @@
 [project]
 name = "ableton-mcp-arrangement"
-version = "1.2.0"
+version = "1.2.1"
 description = "Ableton Live integration through the Model Context Protocol with Arrangement View support"
 authors = [{ name = "windmonarch" }]
 license = "MIT"
