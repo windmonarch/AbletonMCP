@@ -279,6 +279,22 @@ class SessionCommands:
         return {"send_index": send_index, "value": sends[send_index].value}
 
     # -------------------------------------------------------------------------
+    # Song-level controls
+    # -------------------------------------------------------------------------
+
+    def _set_time_signature(self, numerator, denominator):
+        self._song.signature_numerator = numerator
+        self._song.signature_denominator = denominator
+        return {
+            "signature_numerator": self._song.signature_numerator,
+            "signature_denominator": self._song.signature_denominator,
+        }
+
+    def _jump_to_time(self, time):
+        self._song.current_song_time = float(time)
+        return {"current_song_time": float(time)}
+
+    # -------------------------------------------------------------------------
     # Device deletion
     # -------------------------------------------------------------------------
 

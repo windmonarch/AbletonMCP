@@ -16,6 +16,8 @@ from .commands_session import SessionCommands
 from .commands_arrangement import ArrangementCommands
 from .commands_browser import BrowserCommands
 from .commands_devices import DeviceCommands
+from .commands_scenes import SceneCommands
+from .commands_automation import AutomationCommands
 
 DEFAULT_PORT = 9877
 HOST = "localhost"
@@ -25,7 +27,7 @@ def create_instance(c_instance):
     return AbletonMCPArrangement(c_instance)
 
 
-class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommands, DeviceCommands, ControlSurface):
+class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommands, DeviceCommands, SceneCommands, AutomationCommands, ControlSurface):
 
     def __init__(self, c_instance):
         ControlSurface.__init__(self, c_instance)
@@ -76,6 +78,8 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             "get_clip_notes":            lambda p: self._get_clip_notes(p.get("track_index", 0), p.get("clip_index", 0)),
             "get_device_parameters":     lambda p: self._get_device_parameters(p.get("track_index", 0), p.get("device_index", 0)),
             "get_drum_pads":             lambda p: self._get_drum_pads(p.get("track_index", 0), p.get("device_index", 0)),
+            "get_scenes":                lambda p: self._get_scenes(),
+            "get_clip_envelope":         lambda p: self._get_clip_envelope(p.get("track_index", 0), p.get("clip_index", 0), p.get("device_index", 0), p.get("param_index", 0)),
         }
 
         self.WRITE_DISPATCH = {
@@ -114,6 +118,27 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             "set_clip_gain":          lambda p: self._set_clip_gain(p.get("track_index", 0), p.get("clip_index", 0), p.get("gain", 1.0)),
             "set_clip_markers":       lambda p: self._set_clip_markers(p.get("track_index", 0), p.get("clip_index", 0), p.get("start_marker", 0.0), p.get("end_marker", 0.0)),
             "set_device_parameter":   lambda p: self._set_device_parameter(p.get("track_index", 0), p.get("device_index", 0), p.get("param_index", 0), p.get("value", 0.0)),
+            # Song level
+            "set_time_signature":     lambda p: self._set_time_signature(p.get("numerator", 4), p.get("denominator", 4)),
+            "jump_to_time":           lambda p: self._jump_to_time(p.get("time", 0.0)),
+            # Scenes
+            "create_scene":           lambda p: self._create_scene(p.get("index", -1)),
+            "delete_scene":           lambda p: self._delete_scene(p.get("scene_index", 0)),
+            "fire_scene":             lambda p: self._fire_scene(p.get("scene_index", 0)),
+            "set_scene_name":         lambda p: self._set_scene_name(p.get("scene_index", 0), p.get("name", "")),
+            "set_scene_tempo":        lambda p: self._set_scene_tempo(p.get("scene_index", 0), p.get("tempo", 120.0)),
+            # Clip level
+            "quantize_clip":          lambda p: self._quantize_clip(p.get("track_index", 0), p.get("clip_index", 0), p.get("grid", "1/8"), p.get("amount", 1.0)),
+            "duplicate_clip_loop":    lambda p: self._duplicate_clip_loop(p.get("track_index", 0), p.get("clip_index", 0)),
+            "set_clip_mute":          lambda p: self._set_clip_mute(p.get("track_index", 0), p.get("clip_index", 0), p.get("mute", False)),
+            "clear_clip_envelopes":   lambda p: self._clear_clip_envelopes(p.get("track_index", 0), p.get("clip_index", 0)),
+            # Cue points
+            "create_cue_point":       lambda p: self._create_cue_point(p.get("time", 0.0)),
+            "delete_cue_point":       lambda p: self._delete_cue_point(p.get("cue_index", 0)),
+            "set_cue_point_name":     lambda p: self._set_cue_point_name(p.get("cue_index", 0), p.get("name", "")),
+            # Automation
+            "set_clip_envelope_point": lambda p: self._set_clip_envelope_point(p.get("track_index", 0), p.get("clip_index", 0), p.get("device_index", 0), p.get("param_index", 0), p.get("time", 0.0), p.get("value", 0.0), p.get("duration", 0.0)),
+            "clear_clip_envelope":     lambda p: self._clear_clip_envelope(p.get("track_index", 0), p.get("clip_index", 0), p.get("device_index", 0), p.get("param_index", 0)),
         }
 
     # -------------------------------------------------------------------------

@@ -6,6 +6,43 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] - 2026-05-01
+
+### Added
+
+**Scene management**
+- `get_scenes` - list all scenes with name, tempo, and triggered state
+- `create_scene` - add a new scene at a given index
+- `delete_scene` - remove a scene by index
+- `fire_scene` - launch all clips in a scene
+- `set_scene_name` - rename a scene
+- `set_scene_tempo` - assign a tempo to a scene (fires when scene is launched)
+
+**Cue points (locators)**
+- `create_cue_point` - create a locator at a beat position in the arrangement
+- `delete_cue_point` - remove a locator by index
+- `set_cue_point_name` - rename a locator
+
+**Clip operations**
+- `quantize_clip` - quantize MIDI notes to a grid (bar, 1/2, 1/4, 1/8, 1/16, 1/32)
+- `duplicate_clip_loop` - double a clip's loop length by duplicating its content
+- `set_clip_mute` - mute or unmute an Arrangement View clip
+- `clear_clip_envelopes` - remove all automation envelopes from a clip
+
+**Session controls**
+- `set_time_signature` - set the session time signature (numerator and denominator)
+- `jump_to_time` - move the playhead to a specific beat position
+
+**Clip automation envelopes** *(Session View clips only - Live API limitation)*
+- `get_clip_envelope` - read automation points for a device parameter in a clip
+- `set_clip_envelope_point` - insert an automation breakpoint into a clip envelope
+- `clear_clip_envelope` - clear automation for a specific device parameter in a clip
+
+### Fixed
+- `jump_to_time` previously returned the pre-move playhead position due to a Live API read-back timing issue - now correctly returns the target position
+
+---
+
 ## [1.1.0] - 2026-04-30
 
 ### Added

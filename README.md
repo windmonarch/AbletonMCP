@@ -4,9 +4,7 @@ Control Ableton Live through Claude using the Model Context Protocol (MCP).
 
 ## What it does
 
-AbletonMCP connects Claude to a live Ableton session over a local socket connection. You can ask Claude to create tracks, write MIDI, load instruments, set tempo, control playback, and more - all executed directly in your open Ableton session in real time.
-
-This fork extends the original [ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) with full **Arrangement View** support.
+AbletonMCP connects Claude to a live Ableton session over a local socket connection. You can ask Claude to create tracks, write MIDI, load instruments, set tempo, control playback, manage scenes, automate parameters, and more - all executed directly in your open Ableton session in real time.
 
 ---
 
@@ -27,16 +25,20 @@ AbletonMCP\
 ├── server_arrangement.py        - MCP server entry point
 ├── ableton\
 │   ├── connection.py            - TCP connection to Ableton
-│   ├── tools_session.py         - Session View + global MCP tools
+│   ├── tools_session.py         - Session + global MCP tools
 │   ├── tools_arrangement.py     - Arrangement View MCP tools
 │   ├── tools_browser.py         - Browser MCP tools
-│   └── tools_devices.py         - Device and drum pad MCP tools
+│   ├── tools_devices.py         - Device and drum pad MCP tools
+│   ├── tools_scenes.py          - Scene management MCP tools
+│   └── tools_automation.py      - Clip automation envelope MCP tools
 └── AbletonMCPArrangement\
     ├── __init__.py              - Ableton Remote Script entry point
-    ├── commands_session.py      - Session View command handlers
+    ├── commands_session.py      - Session command handlers
     ├── commands_arrangement.py  - Arrangement View command handlers
     ├── commands_browser.py      - Browser command handlers
-    └── commands_devices.py      - Device and drum pad command handlers
+    ├── commands_devices.py      - Device command handlers
+    ├── commands_scenes.py       - Scene command handlers
+    └── commands_automation.py   - Automation envelope command handlers
 ```
 
 The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPArrangement/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
@@ -58,18 +60,20 @@ git clone https://github.com/windmonarch/AbletonMCP
 
 ### Step 2 - Install the Remote Script
 
-Copy the entire `AbletonMCPArrangement` folder (all 5 files) into your Ableton User Library:
+Copy the entire `AbletonMCPArrangement` folder (all 7 files) into your Ableton User Library:
 
 ```
 C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPArrangement\
 ```
 
-The folder must contain all five files:
+The folder must contain all seven files:
 - `__init__.py`
 - `commands_session.py`
 - `commands_arrangement.py`
 - `commands_browser.py`
 - `commands_devices.py`
+- `commands_scenes.py`
+- `commands_automation.py`
 
 > **Important:** Ableton scans `Documents\Ableton\User Library\Remote Scripts`. Do NOT deploy to the AppData path - Ableton does not scan it.
 
@@ -124,6 +128,8 @@ Make sure Ableton is open with the `AbletonMCPArrangement` control surface activ
 | `get_current_song_time` | Current playhead position in beats |
 | `get_cue_points` | List all cue points with their names and positions |
 | `jump_to_cue` | Jump to the next or previous cue point |
+| `set_time_signature` | Set session time signature (e.g. 3/4, 6/8) |
+| `jump_to_time` | Move playhead to a specific beat position |
 
 ### Tracks
 | Tool | What it does |
@@ -169,6 +175,10 @@ Make sure Ableton is open with the `AbletonMCPArrangement` control surface activ
 | `set_clip_pitch` | Set coarse and fine pitch of an audio clip |
 | `set_clip_gain` | Set the gain of an audio clip (0.0 to 1.0) |
 | `set_clip_markers` | Set the start and end loop markers on a clip |
+| `quantize_clip` | Quantize MIDI notes to a grid (bar, 1/2, 1/4, 1/8, 1/16, 1/32) |
+| `duplicate_clip_loop` | Double a clip's loop length by duplicating its content |
+| `set_clip_mute` | Mute or unmute a clip |
+| `clear_clip_envelopes` | Remove all automation envelopes from a clip |
 
 ### Session View clips
 | Tool | What it does |
@@ -178,6 +188,23 @@ Make sure Ableton is open with the `AbletonMCPArrangement` control surface activ
 | `set_clip_name` | Rename a Session View clip |
 | `fire_clip` | Launch a Session View clip |
 | `stop_clip` | Stop a playing Session View clip |
+
+### Scenes
+| Tool | What it does |
+|---|---|
+| `get_scenes` | List all scenes with name and tempo |
+| `create_scene` | Add a new scene at a given index (-1 = end) |
+| `delete_scene` | Remove a scene by index |
+| `fire_scene` | Launch all clips in a scene |
+| `set_scene_name` | Rename a scene |
+| `set_scene_tempo` | Assign a tempo to a scene (0.0 = clear) |
+
+### Cue points
+| Tool | What it does |
+|---|---|
+| `create_cue_point` | Create a locator at a specific beat position |
+| `delete_cue_point` | Remove a locator by index |
+| `set_cue_point_name` | Rename a locator |
 
 ### Devices
 | Tool | What it does |
@@ -195,6 +222,13 @@ Make sure Ableton is open with the `AbletonMCPArrangement` control surface activ
 | `load_instrument_or_effect` | Load a device onto a track by URI |
 | `load_drum_kit` | Load a drum rack and kit onto a track |
 
+### Clip automation envelopes
+| Tool | What it does |
+|---|---|
+| `get_clip_envelope` | Read automation points for a device parameter in a clip |
+| `set_clip_envelope_point` | Insert an automation breakpoint into a clip envelope |
+| `clear_clip_envelope` | Clear automation for a specific device parameter in a clip |
+
 ### Live API limitations
 
 These operations are not possible via the Live Python API and must be done manually:
@@ -202,6 +236,7 @@ These operations are not possible via the Live Python API and must be done manua
 - **Creating an arrangement clip** - double-click in the Arrangement View to draw a clip
 - **Deleting an arrangement clip** - select the clip and press Delete
 - **Deleting a return track** - right-click the return track header and select Delete
+- **Creating new clip automation envelopes on arrangement clips** - `set_clip_envelope_point` requires an existing envelope. Right-click the parameter in Ableton and choose Show Automation in Clip to draw the first breakpoint manually, then the tool can insert additional points.
 
 ---
 
@@ -215,7 +250,7 @@ If you have modified the remote script files and Ableton is not picking up your 
 2. Copy the updated files from the repo to the deployed folder
 3. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPArrangement`
 
-Ableton caches compiled bytecode - if you skip step 1, your changes will be ignored.
+Ableton caches compiled bytecode - if you skip step 1, your changes will be ignored. If toggling the control surface still does not pick up changes, do a full Ableton restart.
 
 ### MCP server fails to start
 
@@ -235,4 +270,4 @@ Make sure:
 
 ## Credits
 
-Built on top of [ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) by [@ahujasid](https://github.com/ahujasid). The original project provides the core MCP server architecture and Ableton Remote Script foundation. This fork extends it with Arrangement View tooling and a refactored multi-file structure.
+Built on top of [ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) by [@ahujasid](https://github.com/ahujasid).

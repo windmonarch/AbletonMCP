@@ -161,3 +161,88 @@ class ArrangementCommands:
         clip.start_marker = start_marker
         clip.end_marker = end_marker
         return {"start_marker": clip.start_marker, "end_marker": clip.end_marker}
+
+    # -------------------------------------------------------------------------
+    # Clip property commands
+    # -------------------------------------------------------------------------
+
+    _QUANTIZE_GRID = {
+        "bar":  4,
+        "1/2":  5,
+        "1/4":  6,
+        "1/8":  7,
+        "1/16": 8,
+        "1/32": 9,
+    }
+
+    def _quantize_clip(self, track_index, clip_index, grid="1/8", amount=1.0):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        arr_clips = list(track.arrangement_clips)
+        if clip_index < 0 or clip_index >= len(arr_clips):
+            raise IndexError("Arrangement clip index out of range")
+        grid_value = self._QUANTIZE_GRID.get(grid)
+        if grid_value is None:
+            raise ValueError("Invalid grid. Use: bar, 1/2, 1/4, 1/8, 1/16, 1/32")
+        arr_clips[clip_index].quantize(grid_value, float(amount))
+        return {"quantized": True, "grid": grid, "amount": amount}
+
+    def _duplicate_clip_loop(self, track_index, clip_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        arr_clips = list(track.arrangement_clips)
+        if clip_index < 0 or clip_index >= len(arr_clips):
+            raise IndexError("Arrangement clip index out of range")
+        clip = arr_clips[clip_index]
+        clip.duplicate_loop()
+        return {"new_length": clip.length}
+
+    def _set_clip_mute(self, track_index, clip_index, mute):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        arr_clips = list(track.arrangement_clips)
+        if clip_index < 0 or clip_index >= len(arr_clips):
+            raise IndexError("Arrangement clip index out of range")
+        arr_clips[clip_index].muted = bool(mute)
+        return {"muted": arr_clips[clip_index].muted}
+
+    def _clear_clip_envelopes(self, track_index, clip_index):
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        arr_clips = list(track.arrangement_clips)
+        if clip_index < 0 or clip_index >= len(arr_clips):
+            raise IndexError("Arrangement clip index out of range")
+        arr_clips[clip_index].clear_all_envelopes()
+        return {"cleared": True}
+
+    # -------------------------------------------------------------------------
+    # Cue point write commands
+    # -------------------------------------------------------------------------
+
+    def _create_cue_point(self, time):
+        self._song.current_song_time = float(time)
+        self._song.set_or_delete_cue()
+        for cp in self._song.cue_points:
+            if abs(cp.time - float(time)) < 0.01:
+                return {"name": cp.name, "time": cp.time}
+        return {"created": True, "time": float(time)}
+
+    def _delete_cue_point(self, cue_index):
+        cue_points = list(self._song.cue_points)
+        if cue_index < 0 or cue_index >= len(cue_points):
+            raise IndexError("Cue point index out of range")
+        cp = cue_points[cue_index]
+        self._song.current_song_time = cp.time
+        self._song.set_or_delete_cue()
+        return {"deleted": True}
+
+    def _set_cue_point_name(self, cue_index, name):
+        cue_points = list(self._song.cue_points)
+        if cue_index < 0 or cue_index >= len(cue_points):
+            raise IndexError("Cue point index out of range")
+        cue_points[cue_index].name = name
+        return {"name": cue_points[cue_index].name}

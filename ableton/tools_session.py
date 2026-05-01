@@ -402,3 +402,33 @@ def register(mcp: FastMCP):
             return f"Deleted device. Track now has {result.get('device_count')} device(s)."
         except Exception as e:
             return f"Error deleting device: {str(e)}"
+
+    @mcp.tool()
+    def set_time_signature(ctx: Context, numerator: int, denominator: int) -> str:
+        """
+        Set the time signature of the Ableton session.
+
+        Parameters:
+        - numerator: The top number (beats per bar, e.g. 3 for 3/4)
+        - denominator: The bottom number (beat value, e.g. 4 for quarter note, 8 for eighth note)
+        """
+        try:
+            result = get_ableton_connection().send_command("set_time_signature", {
+                "numerator": numerator, "denominator": denominator})
+            return f"Time signature set to {result['signature_numerator']}/{result['signature_denominator']}"
+        except Exception as e:
+            return f"Error setting time signature: {str(e)}"
+
+    @mcp.tool()
+    def jump_to_time(ctx: Context, time: float) -> str:
+        """
+        Move the playhead to a specific position in the arrangement.
+
+        Parameters:
+        - time: Position in beats from the start of the arrangement (e.g. 4.0 = bar 2 in 4/4)
+        """
+        try:
+            result = get_ableton_connection().send_command("jump_to_time", {"time": time})
+            return f"Playhead moved to {result['current_song_time']} beats"
+        except Exception as e:
+            return f"Error jumping to time: {str(e)}"

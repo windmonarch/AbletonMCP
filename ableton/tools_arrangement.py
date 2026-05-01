@@ -245,3 +245,132 @@ def register(mcp: FastMCP):
             return json.dumps(result, indent=2)
         except Exception as e:
             return f"Error setting clip markers: {str(e)}"
+
+    @mcp.tool()
+    def quantize_clip(
+        ctx: Context,
+        track_index: int,
+        clip_index: int,
+        grid: str = "1/8",
+        amount: float = 1.0
+    ) -> str:
+        """
+        Quantize the MIDI notes in an Arrangement View clip.
+
+        Parameters:
+        - track_index: The index of the track containing the clip
+        - clip_index: The position of the clip in the arrangement clip list (0 = first)
+        - grid: Quantization grid - one of: bar, 1/2, 1/4, 1/8, 1/16, 1/32 (default: 1/8)
+        - amount: Quantization strength from 0.0 to 1.0 (default: 1.0 = full)
+        """
+        try:
+            get_ableton_connection().send_command("quantize_clip", {
+                "track_index": track_index,
+                "clip_index": clip_index,
+                "grid": grid,
+                "amount": amount,
+            })
+            return f"Quantized clip {clip_index} on track {track_index} to {grid} grid at {amount * 100:.0f}% strength"
+        except Exception as e:
+            return f"Error quantizing clip: {str(e)}"
+
+    @mcp.tool()
+    def duplicate_clip_loop(ctx: Context, track_index: int, clip_index: int) -> str:
+        """
+        Double the loop length of an Arrangement View clip by duplicating its content.
+
+        Parameters:
+        - track_index: The index of the track containing the clip
+        - clip_index: The position of the clip in the arrangement clip list (0 = first)
+        """
+        try:
+            result = get_ableton_connection().send_command("duplicate_clip_loop", {
+                "track_index": track_index,
+                "clip_index": clip_index,
+            })
+            return f"Loop duplicated. New clip length: {result['new_length']} beats"
+        except Exception as e:
+            return f"Error duplicating clip loop: {str(e)}"
+
+    @mcp.tool()
+    def set_clip_mute(ctx: Context, track_index: int, clip_index: int, mute: bool) -> str:
+        """
+        Mute or unmute an Arrangement View clip.
+
+        Parameters:
+        - track_index: The index of the track containing the clip
+        - clip_index: The position of the clip in the arrangement clip list (0 = first)
+        - mute: True to mute, False to unmute
+        """
+        try:
+            result = get_ableton_connection().send_command("set_clip_mute", {
+                "track_index": track_index,
+                "clip_index": clip_index,
+                "mute": mute,
+            })
+            state = "muted" if result["muted"] else "unmuted"
+            return f"Clip {clip_index} on track {track_index} is now {state}"
+        except Exception as e:
+            return f"Error setting clip mute: {str(e)}"
+
+    @mcp.tool()
+    def clear_clip_envelopes(ctx: Context, track_index: int, clip_index: int) -> str:
+        """
+        Remove all automation envelopes from an Arrangement View clip.
+
+        Parameters:
+        - track_index: The index of the track containing the clip
+        - clip_index: The position of the clip in the arrangement clip list (0 = first)
+        """
+        try:
+            get_ableton_connection().send_command("clear_clip_envelopes", {
+                "track_index": track_index,
+                "clip_index": clip_index,
+            })
+            return f"Cleared all automation envelopes from clip {clip_index} on track {track_index}"
+        except Exception as e:
+            return f"Error clearing clip envelopes: {str(e)}"
+
+    @mcp.tool()
+    def create_cue_point(ctx: Context, time: float) -> str:
+        """
+        Create a cue point (locator) at a specific position in the arrangement.
+
+        Parameters:
+        - time: Position in beats from the start of the arrangement (e.g. 8.0 = bar 3 in 4/4)
+        """
+        try:
+            result = get_ableton_connection().send_command("create_cue_point", {"time": time})
+            return f"Created cue point '{result.get('name', '')}' at beat {result.get('time', time)}"
+        except Exception as e:
+            return f"Error creating cue point: {str(e)}"
+
+    @mcp.tool()
+    def delete_cue_point(ctx: Context, cue_index: int) -> str:
+        """
+        Delete a cue point by its index. Use get_cue_points to find the index.
+
+        Parameters:
+        - cue_index: The index of the cue point to delete (0 = first)
+        """
+        try:
+            get_ableton_connection().send_command("delete_cue_point", {"cue_index": cue_index})
+            return f"Deleted cue point at index {cue_index}"
+        except Exception as e:
+            return f"Error deleting cue point: {str(e)}"
+
+    @mcp.tool()
+    def set_cue_point_name(ctx: Context, cue_index: int, name: str) -> str:
+        """
+        Rename a cue point. Use get_cue_points to find the index.
+
+        Parameters:
+        - cue_index: The index of the cue point to rename (0 = first)
+        - name: The new name for the cue point
+        """
+        try:
+            result = get_ableton_connection().send_command("set_cue_point_name", {
+                "cue_index": cue_index, "name": name})
+            return f"Cue point renamed to '{result['name']}'"
+        except Exception as e:
+            return f"Error setting cue point name: {str(e)}"

@@ -12,6 +12,8 @@ import ableton.tools_session as tools_session
 import ableton.tools_arrangement as tools_arrangement
 import ableton.tools_browser as tools_browser
 import ableton.tools_devices as tools_devices
+import ableton.tools_scenes as tools_scenes
+import ableton.tools_automation as tools_automation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,6 +44,8 @@ tools_session.register(mcp)
 tools_arrangement.register(mcp)
 tools_browser.register(mcp)
 tools_devices.register(mcp)
+tools_scenes.register(mcp)
+tools_automation.register(mcp)
 
 
 def main():
