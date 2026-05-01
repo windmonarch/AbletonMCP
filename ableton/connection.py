@@ -1,5 +1,5 @@
 # ableton/connection.py
-# TCP connection to the AbletonMCPArrangement remote script running inside Ableton.
+# TCP connection to the AbletonMCPLocal remote script running inside Ableton.
 import socket
 import json
 import time

@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_arrangement.py
+# AbletonMCPLocal/commands_arrangement.py
 # Handlers for Arrangement View commands.
 # NOTE: create_arrangement_clip and delete_arrangement_clip are NOT implemented.
 # The Live ControlSurface Python API exposes no method to create or delete

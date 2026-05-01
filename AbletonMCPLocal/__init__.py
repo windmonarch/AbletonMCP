@@ -1,7 +1,7 @@
-# AbletonMCPArrangement/__init__.py
+# AbletonMCPLocal/__init__.py
 # Ableton Remote Script entry point.
 # Loaded by Ableton Live from:
-#   Documents\Ableton\User Library\Remote Scripts\AbletonMCPArrangement\
+#   Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
 from __future__ import absolute_import, print_function, unicode_literals
 
 from _Framework.ControlSurface import ControlSurface
@@ -24,14 +24,14 @@ HOST = "localhost"
 
 
 def create_instance(c_instance):
-    return AbletonMCPArrangement(c_instance)
+    return AbletonMCPLocal(c_instance)
 
 
-class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommands, DeviceCommands, SceneCommands, AutomationCommands, ControlSurface):
+class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, DeviceCommands, SceneCommands, AutomationCommands, ControlSurface):
 
     def __init__(self, c_instance):
         ControlSurface.__init__(self, c_instance)
-        self.log_message("AbletonMCPArrangement initializing...")
+        self.log_message("AbletonMCPLocal initializing...")
         self.server = None
         self.client_threads = []
         self.server_thread = None
@@ -39,11 +39,11 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
         self._song = self.song()
         self._build_dispatch_table()
         self.start_server()
-        self.log_message("AbletonMCPArrangement initialized")
-        self.show_message("AbletonMCPArrangement: Listening on port " + str(DEFAULT_PORT))
+        self.log_message("AbletonMCPLocal initialized")
+        self.show_message("AbletonMCPLocal: Listening on port " + str(DEFAULT_PORT))
 
     def disconnect(self):
-        self.log_message("AbletonMCPArrangement disconnecting...")
+        self.log_message("AbletonMCPLocal disconnecting...")
         self.running = False
         if self.server:
             try:
@@ -53,7 +53,7 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
         if self.server_thread and self.server_thread.is_alive():
             self.server_thread.join(1.0)
         ControlSurface.disconnect(self)
-        self.log_message("AbletonMCPArrangement disconnected")
+        self.log_message("AbletonMCPLocal disconnected")
 
     # -------------------------------------------------------------------------
     # Dispatch table
@@ -158,7 +158,7 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             self.log_message("Server started on port " + str(DEFAULT_PORT))
         except Exception as e:
             self.log_message("Error starting server: " + str(e))
-            self.show_message("AbletonMCPArrangement: Error starting server - " + str(e))
+            self.show_message("AbletonMCPLocal: Error starting server - " + str(e))
 
     def _server_thread(self):
         self.log_message("Server thread started")
@@ -167,7 +167,7 @@ class AbletonMCPArrangement(SessionCommands, ArrangementCommands, BrowserCommand
             try:
                 client, address = self.server.accept()
                 self.log_message("Connection accepted from " + str(address))
-                self.show_message("AbletonMCPArrangement: Client connected")
+                self.show_message("AbletonMCPLocal: Client connected")
                 client_thread = threading.Thread(target=self._handle_client, args=(client,))
                 client_thread.daemon = True
                 client_thread.start()

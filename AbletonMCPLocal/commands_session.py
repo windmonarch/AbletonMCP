@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_session.py
+# AbletonMCPLocal/commands_session.py
 # Handlers for Session View and global song commands.
 # These run on Ableton's main thread via schedule_message().
 from __future__ import absolute_import, print_function, unicode_literals

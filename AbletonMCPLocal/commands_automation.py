@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_automation.py
+# AbletonMCPLocal/commands_automation.py
 # Handlers for clip automation envelope commands.
 from __future__ import absolute_import, print_function, unicode_literals
 

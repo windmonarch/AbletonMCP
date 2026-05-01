@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_browser.py
+# AbletonMCPLocal/commands_browser.py
 # Handlers for Ableton's browser (instruments, effects, samples).
 from __future__ import absolute_import, print_function, unicode_literals
 import traceback

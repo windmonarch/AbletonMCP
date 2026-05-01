@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_scenes.py
+# AbletonMCPLocal/commands_scenes.py
 # Handlers for Scene commands.
 from __future__ import absolute_import, print_function, unicode_literals
 

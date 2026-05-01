@@ -6,6 +6,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] - 2026-05-01
+
+### Changed
+- Renamed Remote Script folder from `AbletonMCPArrangement` to `AbletonMCPLocal`
+- Renamed Python class from `AbletonMCPArrangement` to `AbletonMCPLocal`
+
+### Migration
+Existing users must update their setup:
+1. Close Ableton
+2. Rename the deployed folder from `AbletonMCPArrangement` to `AbletonMCPLocal` in `Documents\Ableton\User Library\Remote Scripts\`
+3. Delete `__pycache__` inside the renamed folder
+4. Restart Ableton
+5. In Preferences -> Link, Tempo & MIDI -> Control Surface, reselect `AbletonMCPLocal`
+
+---
+
 ## [1.2.1] - 2026-05-01
 
 ### Fixed

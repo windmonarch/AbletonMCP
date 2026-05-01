@@ -1,4 +1,4 @@
-# AbletonMCPArrangement/commands_devices.py
+# AbletonMCPLocal/commands_devices.py
 # Handlers for device parameter and drum pad commands.
 from __future__ import absolute_import, print_function, unicode_literals
 

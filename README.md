@@ -31,7 +31,7 @@ AbletonMCP\
 │   ├── tools_devices.py         - Device and drum pad MCP tools
 │   ├── tools_scenes.py          - Scene management MCP tools
 │   └── tools_automation.py      - Clip automation envelope MCP tools
-└── AbletonMCPArrangement\
+└── AbletonMCPLocal\
     ├── __init__.py              - Ableton Remote Script entry point
     ├── commands_session.py      - Session command handlers
     ├── commands_arrangement.py  - Arrangement View command handlers
@@ -41,7 +41,7 @@ AbletonMCP\
     └── commands_automation.py   - Automation envelope command handlers
 ```
 
-The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPArrangement/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
+The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPLocal/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
 
 ---
 
@@ -52,7 +52,7 @@ The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude
 Clone this repo to your PC. This gives you both folders:
 
 - `ableton/` - the MCP server package, stays where you cloned it and runs on your PC
-- `AbletonMCPArrangement/` - the Ableton Remote Script, needs to be copied into Ableton in Step 2
+- `AbletonMCPLocal/` - the Ableton Remote Script, needs to be copied into Ableton in Step 2
 
 ```powershell
 git clone https://github.com/windmonarch/AbletonMCP
@@ -60,10 +60,10 @@ git clone https://github.com/windmonarch/AbletonMCP
 
 ### Step 2 - Install the Remote Script
 
-Copy the entire `AbletonMCPArrangement` folder (all 7 files) into your Ableton User Library:
+Copy the entire `AbletonMCPLocal` folder (all 7 files) into your Ableton User Library:
 
 ```
-C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPArrangement\
+C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
 ```
 
 The folder must contain all seven files:
@@ -77,7 +77,7 @@ The folder must contain all seven files:
 
 > **Important:** Ableton scans `Documents\Ableton\User Library\Remote Scripts`. Do NOT deploy to the AppData path - Ableton does not scan it.
 
-Then in Ableton: **Preferences -> Link, Tempo & MIDI -> Control Surface** - select `AbletonMCPArrangement` and set Input and Output to `None`.
+Then in Ableton: **Preferences -> Link, Tempo & MIDI -> Control Surface** - select `AbletonMCPLocal` and set Input and Output to `None`.
 
 ### Step 3 - Configure Claude Code
 
@@ -115,7 +115,7 @@ For example, if you cloned to `C:\Users\John\Projects\AbletonMCP`:
 
 Launch Claude Code from your project folder. It will automatically start the MCP server using the `.mcp.json` config. You should see the Ableton tools available in your Claude session.
 
-Make sure Ableton is open with the `AbletonMCPArrangement` control surface active before starting Claude Code.
+Make sure Ableton is open with the `AbletonMCPLocal` control surface active before starting Claude Code.
 
 ---
 
@@ -246,9 +246,9 @@ These operations are not possible via the Live Python API and must be done manua
 
 If you have modified the remote script files and Ableton is not picking up your changes:
 
-1. Delete the `__pycache__` folder inside the deployed `AbletonMCPArrangement` folder
+1. Delete the `__pycache__` folder inside the deployed `AbletonMCPLocal` folder
 2. Copy the updated files from the repo to the deployed folder
-3. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPArrangement`
+3. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPLocal`
 
 Ableton caches compiled bytecode - if you skip step 1, your changes will be ignored. If toggling the control surface still does not pick up changes, do a full Ableton restart.
 
@@ -262,7 +262,7 @@ Make sure:
 ### Claude cannot connect to Ableton
 
 Make sure:
-- Ableton is open and `AbletonMCPArrangement` is selected as the Control Surface
+- Ableton is open and `AbletonMCPLocal` is selected as the Control Surface
 - No other application is using port 9877
 - The `__pycache__` in the deployed folder is not stale (delete it and reload the surface if unsure)
 
