@@ -271,3 +271,7 @@ Make sure:
 ## Credits
 
 Built on top of [ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) by [@ahujasid](https://github.com/ahujasid).
+
+All Ableton Live integration is built against the [Ableton Live Object Model](https://structure.uniqpath.com/ableton/live-object-model) - the Python API that Live exposes to Remote Scripts.
+
+MCP server built with the [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk).
