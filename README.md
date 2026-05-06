@@ -248,9 +248,9 @@ If you have modified the remote script files and Ableton is not picking up your 
 
 1. Delete the `__pycache__` folder inside the deployed `AbletonMCPLocal` folder
 2. Copy the updated files from the repo to the deployed folder
-3. In Ableton Preferences, set the Control Surface to `None`, then back to `AbletonMCPLocal`
+3. Do a full Ableton restart
 
-Ableton caches compiled bytecode - if you skip step 1, your changes will be ignored. If toggling the control surface still does not pick up changes, do a full Ableton restart.
+Ableton caches compiled bytecode in `__pycache__` and also caches modules in `sys.modules` at runtime. Toggling the control surface to None and back is not sufficient to clear either cache - only a full restart picks up changes to `.py` files.
 
 ### MCP server fails to start
 
