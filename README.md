@@ -23,6 +23,7 @@ AbletonMCP connects Claude to a live Ableton session over a local socket connect
 ```
 AbletonMCP\
 ├── server_arrangement.py        - MCP server entry point
+├── deploy.ps1                   - Deploy script (copies files to Ableton + Claude Code worktrees)
 ├── ableton\
 │   ├── connection.py            - TCP connection to Ableton
 │   ├── tools_session.py         - Session + global MCP tools
@@ -60,56 +61,41 @@ git clone https://github.com/windmonarch/AbletonMCP
 
 ### Step 2 - Install the Remote Script
 
-Copy the entire `AbletonMCPLocal` folder (all 7 files) into your Ableton User Library:
+Run the deploy script from the repo folder:
+
+```powershell
+.\deploy.ps1
+```
+
+This automatically copies all 7 remote script files to your Ableton User Library at:
 
 ```
 C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
 ```
 
-The folder must contain all seven files:
-- `__init__.py`
-- `commands_session.py`
-- `commands_arrangement.py`
-- `commands_browser.py`
-- `commands_devices.py`
-- `commands_scenes.py`
-- `commands_automation.py`
-
 > **Important:** Ableton scans `Documents\Ableton\User Library\Remote Scripts`. Do NOT deploy to the AppData path - Ableton does not scan it.
+
+If you prefer to copy manually, paste the entire `AbletonMCPLocal` folder (all 7 files) into the path above.
 
 Then in Ableton: **Preferences -> Link, Tempo & MIDI -> Control Surface** - select `AbletonMCPLocal` and set Input and Output to `None`.
 
 ### Step 3 - Configure Claude Code
 
-Create a `.mcp.json` file inside the cloned repo folder. Replace the path in `cwd` with the actual path to where you cloned the repo on your machine:
+Create a `.mcp.json` file inside the cloned repo folder. Use the full absolute path to `server_arrangement.py` in both `args` and `cwd`, replacing the example path with wherever you cloned the repo:
 
 ```json
 {
   "mcpServers": {
     "AbletonMCP": {
       "command": "uv",
-      "args": ["run", "--with", "mcp[cli]", "server_arrangement.py"],
-      "cwd": "C:\\Users\\[Username]\\path\\to\\AbletonMCP"
-    }
-  }
-}
-```
-
-For example, if you cloned to `C:\Users\John\Projects\AbletonMCP`:
-
-```json
-{
-  "mcpServers": {
-    "AbletonMCP": {
-      "command": "uv",
-      "args": ["run", "--with", "mcp[cli]", "server_arrangement.py"],
+      "args": ["run", "--with", "mcp[cli]", "C:\\Users\\John\\Projects\\AbletonMCP\\server_arrangement.py"],
       "cwd": "C:\\Users\\John\\Projects\\AbletonMCP"
     }
   }
 }
 ```
 
-> **Note:** Windows paths in JSON require double backslashes `\\`. The `cwd` field is required - without it `uv` may not find the correct project files.
+> **Note:** Windows paths in JSON require double backslashes `\\`. Use an absolute path for the script in `args` - this prevents Claude Code from accidentally running a stale copy from a git worktree.
 
 ### Step 4 - Start Claude Code
 
