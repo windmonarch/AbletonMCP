@@ -224,6 +224,58 @@ def register(mcp: FastMCP):
             return f"Error creating return track: {str(e)}"
 
     @mcp.tool()
+    def get_return_track_info(ctx: Context, return_track_index: int) -> str:
+        """
+        Get info about a return track including its devices.
+
+        Parameters:
+        - return_track_index: The index of the return track (0 = first return track)
+        """
+        try:
+            result = get_ableton_connection().send_command("get_return_track_info", {
+                "return_track_index": return_track_index,
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error getting return track info: {str(e)}"
+
+    @mcp.tool()
+    def set_return_track_name(ctx: Context, return_track_index: int, name: str) -> str:
+        """
+        Rename a return track.
+
+        Parameters:
+        - return_track_index: The index of the return track (0 = first return track)
+        - name: The new name for the track
+        """
+        try:
+            result = get_ableton_connection().send_command("set_return_track_name", {
+                "return_track_index": return_track_index,
+                "name": name,
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error setting return track name: {str(e)}"
+
+    @mcp.tool()
+    def load_effect_on_return_track(ctx: Context, return_track_index: int, item_uri: str) -> str:
+        """
+        Load a plugin or effect onto a return track by browser URI.
+
+        Parameters:
+        - return_track_index: The index of the return track (0 = first return track)
+        - item_uri: The browser URI of the plugin to load (use get_browser_items_at_path to find URIs)
+        """
+        try:
+            result = get_ableton_connection().send_command("load_effect_on_return_track", {
+                "return_track_index": return_track_index,
+                "item_uri": item_uri,
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error loading effect on return track: {str(e)}"
+
+    @mcp.tool()
     def delete_track(ctx: Context, track_index: int) -> str:
         """
         Delete a track from the Ableton session.

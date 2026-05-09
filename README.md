@@ -206,6 +206,15 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 | `delete_cue_point` | Remove a locator by index |
 | `set_cue_point_name` | Rename a locator |
 
+### Return tracks
+| Tool | What it does |
+|---|---|
+| `get_return_track_info` | Name, volume, panning, and devices for a return track |
+| `set_return_track_name` | Rename a return track |
+| `load_effect_on_return_track` | Load a plugin or effect onto a return track by URI |
+
+Return tracks use a separate index (0 = first return track, e.g. A-Reverb). They are accessed via `song.return_tracks[]`, not `song.tracks[]`.
+
 ### Devices
 | Tool | What it does |
 |---|---|
@@ -213,6 +222,7 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 | `set_device_parameter` | Set a device parameter value by parameter index |
 | `delete_device` | Remove a device from a track by index |
 | `get_drum_pads` | List all pads in a Drum Rack with their note and name |
+| `get_rack_devices` | List all devices nested inside a rack's chains (Audio Effect Rack, Instrument Rack, etc.) |
 
 ### Browser
 | Tool | What it does |
@@ -240,17 +250,38 @@ These operations are not possible via the Live Python API and must be done manua
 
 ---
 
+## Deploying changes
+
+If you modify any server or remote script files, run `deploy.ps1` from the project root to push all changes to the right places:
+
+```powershell
+.\deploy.ps1
+```
+
+This script:
+1. Deletes `__pycache__` in the Ableton deployed folder and copies all 7 remote script files there
+2. Syncs `ableton/*.py` and `server_arrangement.py` to all active Claude Code worktrees
+
+After running, restart Ableton to pick up remote script changes. Claude Code reconnects automatically on next use.
+
+---
+
 ## Troubleshooting
 
 ### Remote script changes not taking effect
 
 If you have modified the remote script files and Ableton is not picking up your changes:
 
-1. Delete the `__pycache__` folder inside the deployed `AbletonMCPLocal` folder
-2. Copy the updated files from the repo to the deployed folder
-3. Do a full Ableton restart
+1. Run `.\deploy.ps1` to copy files and clear `__pycache__`
+2. Do a full Ableton restart
 
 Ableton caches compiled bytecode in `__pycache__` and also caches modules in `sys.modules` at runtime. Toggling the control surface to None and back is not sufficient to clear either cache - only a full restart picks up changes to `.py` files.
+
+### New MCP tools not appearing in Claude Code
+
+Claude Code creates git worktrees when opening a project. The MCP server may be running from a worktree directory that has stale copies of the server files. Run `.\deploy.ps1` to sync all server files to all active worktrees, then restart Claude Code.
+
+The `.mcp.json` uses an absolute path for the server script to help prevent this, but the worktree sync is the reliable fix if tools are missing.
 
 ### MCP server fails to start
 
@@ -264,7 +295,7 @@ Make sure:
 Make sure:
 - Ableton is open and `AbletonMCPLocal` is selected as the Control Surface
 - No other application is using port 9877
-- The `__pycache__` in the deployed folder is not stale (delete it and reload the surface if unsure)
+- The `__pycache__` in the deployed folder is not stale (run `.\deploy.ps1` and restart Ableton)
 
 ---
 

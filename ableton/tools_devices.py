@@ -55,6 +55,25 @@ def register(mcp: FastMCP):
             return f"Error setting device parameter: {str(e)}"
 
     @mcp.tool()
+    def get_rack_devices(ctx: Context, track_index: int, device_index: int) -> str:
+        """
+        Get all devices nested inside a rack's chains, including their parameters.
+        Use this to inspect devices inside Audio Effect Racks, Instrument Racks, etc.
+
+        Parameters:
+        - track_index: The index of the track
+        - device_index: The index of the rack device on the track
+        """
+        try:
+            result = get_ableton_connection().send_command("get_rack_devices", {
+                "track_index": track_index,
+                "device_index": device_index,
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error getting rack devices: {str(e)}"
+
+    @mcp.tool()
     def get_drum_pads(ctx: Context, track_index: int, device_index: int) -> str:
         """
         Get all drum pads for a Drum Rack device.

@@ -310,6 +310,52 @@ class SessionCommands:
         return {"deleted": True, "device_count": len(track.devices)}
 
     # -------------------------------------------------------------------------
+    # Return track commands
+    # -------------------------------------------------------------------------
+
+    def _set_return_track_name(self, return_track_index, name):
+        if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):
+            raise IndexError("Return track index out of range")
+        track = self._song.return_tracks[return_track_index]
+        track.name = name
+        return {"name": track.name}
+
+    def _load_effect_on_return_track(self, return_track_index, item_uri):
+        if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):
+            raise IndexError("Return track index out of range")
+        track = self._song.return_tracks[return_track_index]
+        app = self.application()
+        if not app:
+            raise RuntimeError("Could not access Live application")
+        item = self._find_browser_item_by_uri(app.browser, item_uri)
+        if item is None:
+            raise RuntimeError("Browser item not found: " + str(item_uri))
+        self._song.view.selected_track = track
+        app.browser.load_item(item)
+        return {"loaded": True, "uri": item_uri, "track_name": track.name}
+
+    def _get_return_track_info(self, return_track_index):
+        if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):
+            raise IndexError("Return track index out of range")
+        track = self._song.return_tracks[return_track_index]
+        devices = [
+            {
+                "index": i,
+                "name": device.name,
+                "class_name": device.class_name,
+                "type": self._get_device_type(device),
+            }
+            for i, device in enumerate(track.devices)
+        ]
+        return {
+            "index": return_track_index,
+            "name": track.name,
+            "volume": track.mixer_device.volume.value,
+            "panning": track.mixer_device.panning.value,
+            "devices": devices,
+        }
+
+    # -------------------------------------------------------------------------
     # Device helper (shared)
     # -------------------------------------------------------------------------
 

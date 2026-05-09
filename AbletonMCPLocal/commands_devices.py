@@ -43,6 +43,55 @@ class DeviceCommands:
         param.value = value
         return {"param_index": param_index, "name": param.name, "value": param.value}
 
+    def _get_rack_devices(self, track_index, device_index):
+        """Return all devices nested inside a rack's chains, with their parameters."""
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        if device_index < 0 or device_index >= len(track.devices):
+            raise IndexError("Device index out of range")
+        device = track.devices[device_index]
+        if not device.can_have_chains:
+            raise Exception("Device does not have chains (not a rack)")
+
+        chains = []
+        for chain_index, chain in enumerate(device.chains):
+            chain_devices = []
+            for dev_index, dev in enumerate(chain.devices):
+                params = []
+                try:
+                    params = [
+                        {
+                            "index": i,
+                            "name": p.name,
+                            "value": p.value,
+                            "min": p.min,
+                            "max": p.max,
+                        }
+                        for i, p in enumerate(dev.parameters)
+                    ]
+                except Exception:
+                    pass
+                chain_devices.append({
+                    "index": dev_index,
+                    "name": dev.name,
+                    "class_name": dev.class_name,
+                    "is_active": dev.is_active,
+                    "parameters": params,
+                })
+            chains.append({
+                "index": chain_index,
+                "name": chain.name,
+                "devices": chain_devices,
+                "device_count": len(chain_devices),
+            })
+
+        return {
+            "rack_name": device.name,
+            "chain_count": len(chains),
+            "chains": chains,
+        }
+
     def _get_drum_pads(self, track_index, device_index):
         if track_index < 0 or track_index >= len(self._song.tracks):
             raise IndexError("Track index out of range")

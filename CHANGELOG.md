@@ -6,6 +6,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] - 2026-05-09
+
+### Added
+
+**Return track tools**
+- `get_return_track_info` - get name, volume, panning, and device list for a return track (uses `song.return_tracks[]` index, separate from `song.tracks[]`)
+- `set_return_track_name` - rename a return track
+- `load_effect_on_return_track` - load a browser item onto a return track by URI
+
+**Rack inspection**
+- `get_rack_devices` - traverse all chains inside a rack (Audio Effect Rack, Instrument Rack, Drum Rack) and return every nested device with its full parameter list. `get_device_parameters` only returns a rack's macro knobs - use this tool to reach the devices inside.
+
+**Deployment script**
+- `deploy.ps1` - copies remote script files to Ableton and syncs server files to all active Claude Code worktrees in one step
+
+### Fixed
+- `load_effect_on_return_track` initially called `app.browser.load_item(item, track)` which fails - the Live API's `load_item` takes only a `BrowserItem`. Fixed to select the track via `song.view.selected_track` first, then call `load_item(item)`.
+- `.mcp.json` now uses an absolute path for `server_arrangement.py` to prevent Claude Code worktrees from loading stale server files.
+
+---
+
 ## [1.3.0] - 2026-05-01
 
 ### Changed
