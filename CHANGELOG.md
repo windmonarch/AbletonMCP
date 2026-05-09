@@ -6,6 +6,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] - 2026-05-09
+
+### Added
+
+**VST3 and VST2 plugin loading**
+- `load_instrument_or_effect`, `load_browser_item`, and `load_effect_on_return_track` now fully support VST3 and VST2 plugins in addition to native Ableton effects. Pass the URI returned by `get_browser_items_at_path` (e.g. `query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive`) and it loads correctly.
+- When loading by plain plugin name (e.g. `ValhallaSupermassive`), VST3 is automatically preferred over VST2 if both are installed.
+
+### Fixed
+
+- **Main-thread timeout on plugin loading** - previously, any load command that targeted a VST3 or VST2 plugin caused a 10-second timeout and failed. Root cause: Ableton's plugin browser directory scan blocks the main thread, but the 10-second queue timeout expired before the scan finished. Fixed with a two-phase architecture: browser navigation now runs in the client thread (where it is fast), and only the final `load_item()` UI call is scheduled to the main thread.
+- **Recursive browser search did not walk plugins** - `_find_browser_item_by_uri` previously only searched native Ableton categories (`audio_effects`, `instruments`, `midi_effects`, `sounds`, `drums`) and could not locate VST3 or VST2 items. Replaced the recursive full-tree walk with `_navigate_uri_directly`, which parses the URI structure (e.g. `query:Plugins#VST3:Vendor:PluginName`) and navigates directly to the item in O(depth) without scanning the entire plugin library.
+
+### Internal
+
+- Added `_navigate_uri_directly` to `BrowserCommands` - O(depth) URI parser covering all standard Live URI formats (`AudioFx`, `Plugins`, `LivePacks`, `M4L`, `Instruments`, `MidiEffects`, `Sounds`, `Drums`).
+- Added `_find_plugin_by_name` and `_search_children_by_name` to `BrowserCommands` - name-based plugin search with configurable format priority (VST3 first, then VST).
+- Added `LOAD_COMMANDS` frozenset and `_execute_browser_load` to `AbletonMCPLocal` - dedicated dispatch path for all browser load commands that separates navigation (client thread) from UI mutation (main thread).
+- `load_browser_item` and `load_effect_on_return_track` removed from `WRITE_DISPATCH` and now handled exclusively by the `LOAD_COMMANDS` branch.
+
+---
+
 ## [1.4.0] - 2026-05-09
 
 ### Added

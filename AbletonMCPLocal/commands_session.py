@@ -327,12 +327,22 @@ class SessionCommands:
         app = self.application()
         if not app:
             raise RuntimeError("Could not access Live application")
+        # Try exact URI match first (covers native effects + VST3/VST2 URIs).
         item = self._find_browser_item_by_uri(app.browser, item_uri)
+        # Fallback: treat item_uri as a plain plugin name and search by name
+        # with VST3 preferred over VST2.
+        if item is None:
+            item = self._find_plugin_by_name(app.browser, item_uri)
         if item is None:
             raise RuntimeError("Browser item not found: " + str(item_uri))
         self._song.view.selected_track = track
         app.browser.load_item(item)
-        return {"loaded": True, "uri": item_uri, "track_name": track.name}
+        return {
+            "loaded": True,
+            "uri": item_uri,
+            "item_name": item.name if hasattr(item, "name") else item_uri,
+            "track_name": track.name,
+        }
 
     def _get_return_track_info(self, return_track_index):
         if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):

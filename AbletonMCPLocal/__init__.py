@@ -95,7 +95,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "stop_clip":                      lambda p: self._stop_clip(p.get("track_index", 0), p.get("clip_index", 0)),
             "start_playback":                 lambda p: self._start_playback(),
             "stop_playback":                  lambda p: self._stop_playback(),
-            "load_browser_item":              lambda p: self._load_browser_item(p.get("track_index", 0), p.get("item_uri", "")),
+            # load_browser_item handled by LOAD_DISPATCH branch in _process_command
             "add_notes_to_arrangement_clip":  lambda p: self._add_notes_to_arrangement_clip(p.get("track_index", 0), p.get("clip_index", 0), p.get("notes", [])),
             "set_arrangement_clip_name":      lambda p: self._set_arrangement_clip_name(p.get("track_index", 0), p.get("clip_index", 0), p.get("name", "")),
             # New commands
@@ -105,7 +105,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "create_audio_track":     lambda p: self._create_audio_track(p.get("index", -1)),
             "create_return_track":    lambda p: self._create_return_track(),
             "set_return_track_name":  lambda p: self._set_return_track_name(p.get("return_track_index", 0), p.get("name", "")),
-            "load_effect_on_return_track": lambda p: self._load_effect_on_return_track(p.get("return_track_index", 0), p.get("item_uri", "")),
+            # load_effect_on_return_track handled by LOAD_DISPATCH branch in _process_command
             "delete_track":           lambda p: self._delete_track(p.get("track_index", 0)),
             "duplicate_track":        lambda p: self._duplicate_track(p.get("track_index", 0)),
             "set_track_color":        lambda p: self._set_track_color(p.get("track_index", 0), p.get("color", 0)),
@@ -228,6 +228,70 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
     # Command dispatch
     # -------------------------------------------------------------------------
 
+    # Commands that load browser items: browser search runs in client thread,
+    # only load_item() is scheduled to main thread.
+    LOAD_COMMANDS = frozenset(["load_browser_item", "load_effect_on_return_track"])
+
+    def _execute_browser_load(self, command_type, params):
+        """Two-phase browser load: navigate in client thread, load_item in main thread.
+
+        Accessing app.browser.plugins.children in the main thread is extremely slow
+        (plugin directory scan) and causes a 10-second timeout. Running navigation in
+        the client thread avoids this. Only the final load_item() UI call needs the
+        main thread, and that completes in milliseconds.
+        """
+        app = self.application()
+        if not app:
+            raise RuntimeError("Could not access Live application")
+
+        item_uri = params.get("item_uri", "")
+
+        # Phase 1: find the browser item here in the client thread (fast).
+        item = self._find_browser_item_by_uri(app.browser, item_uri)
+        if item is None:
+            item = self._find_plugin_by_name(app.browser, item_uri)
+        if item is None:
+            raise RuntimeError("Browser item not found: " + str(item_uri))
+
+        # Phase 2: resolve the target track (still client thread, safe read).
+        if command_type == "load_effect_on_return_track":
+            idx = params.get("return_track_index", 0)
+            if idx < 0 or idx >= len(self._song.return_tracks):
+                raise IndexError("Return track index out of range")
+            track = self._song.return_tracks[idx]
+        else:  # load_browser_item
+            idx = params.get("track_index", 0)
+            if idx < 0 or idx >= len(self._song.tracks):
+                raise IndexError("Track index out of range")
+            track = self._song.tracks[idx]
+
+        # Phase 3: schedule only load_item() to the main thread (UI call, very fast).
+        response_queue = queue.Queue()
+
+        def main_thread_task():
+            try:
+                self._song.view.selected_track = track
+                app.browser.load_item(item)
+                response_queue.put({"ok": True})
+            except Exception as e:
+                response_queue.put({"ok": False, "error": str(e)})
+
+        try:
+            self.schedule_message(0, main_thread_task)
+        except AssertionError:
+            main_thread_task()
+
+        resp = response_queue.get(timeout=10.0)
+        if not resp.get("ok"):
+            raise RuntimeError(resp.get("error", "load_item failed on main thread"))
+
+        return {
+            "loaded": True,
+            "uri": item_uri,
+            "item_name": item.name if hasattr(item, "name") else item_uri,
+            "track_name": track.name,
+        }
+
     def _process_command(self, command):
         command_type = command.get("type", "")
         params = command.get("params", {})
@@ -239,6 +303,17 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
                 return {"status": "success", "result": result}
             except Exception as e:
                 self.log_message("Error in read command '{0}': {1}".format(command_type, str(e)))
+                return {"status": "error", "message": str(e)}
+
+        # Browser load commands - navigate in client thread, load_item in main thread.
+        # This avoids the 10-second main-thread timeout caused by plugin enumeration.
+        if command_type in self.LOAD_COMMANDS:
+            try:
+                result = self._execute_browser_load(command_type, params)
+                return {"status": "success", "result": result}
+            except Exception as e:
+                self.log_message("Error in load command '{0}': {1}".format(command_type, str(e)))
+                self.log_message(traceback.format_exc())
                 return {"status": "error", "message": str(e)}
 
         # Write commands - must run on Ableton's main thread

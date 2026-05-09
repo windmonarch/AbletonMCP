@@ -197,7 +197,7 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 |---|---|
 | `get_return_track_info` | Name, volume, panning, and devices for a return track |
 | `set_return_track_name` | Rename a return track |
-| `load_effect_on_return_track` | Load a plugin or effect onto a return track by URI |
+| `load_effect_on_return_track` | Load a native effect or VST3/VST2 plugin onto a return track by URI |
 
 Return tracks use a separate index (0 = first return track, e.g. A-Reverb). They are accessed via `song.return_tracks[]`, not `song.tracks[]`.
 
@@ -213,10 +213,23 @@ Return tracks use a separate index (0 = first return track, e.g. A-Reverb). They
 ### Browser
 | Tool | What it does |
 |---|---|
-| `get_browser_tree` | Browse available instruments, effects, and samples |
-| `get_browser_items_at_path` | List items at a specific browser path |
-| `load_instrument_or_effect` | Load a device onto a track by URI |
+| `get_browser_tree` | Browse available instruments, effects, samples, and plugins |
+| `get_browser_items_at_path` | List items at a specific browser path (supports `plugins/VST3`, `plugins/VST`, `audio_effects`, `instruments`, `packs`, etc.) |
+| `load_instrument_or_effect` | Load a native effect or VST3/VST2 plugin onto a track by URI |
 | `load_drum_kit` | Load a drum rack and kit onto a track |
+
+**Loading VST3 and VST2 plugins**
+
+Use `get_browser_items_at_path` to find the exact URI for any plugin, then pass it to a load tool:
+
+```
+get_browser_items_at_path("plugins/VST3/Valhalla DSP")
+-> returns URI: query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive
+
+load_instrument_or_effect(track_index=0, item_uri="query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive")
+```
+
+VST3 is always preferred over VST2 when loading by plugin name. Both formats work with `load_instrument_or_effect`, `load_drum_kit`, and `load_effect_on_return_track`.
 
 ### Clip automation envelopes
 | Tool | What it does |
