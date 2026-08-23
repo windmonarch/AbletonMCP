@@ -1,7 +1,8 @@
 # AbletonMCPLocal/__init__.py
 # Ableton Remote Script entry point.
-# Loaded by Ableton Live from:
-#   Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
+# Loaded by Ableton Live from the User Library:
+#   macOS:   ~/Music/Ableton/User Library/Remote Scripts/AbletonMCPLocal/
+#   Windows: Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
 from __future__ import absolute_import, print_function, unicode_literals
 
 from _Framework.ControlSurface import ControlSurface

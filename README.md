@@ -10,7 +10,7 @@ AbletonMCP connects Claude to a live Ableton session over a local socket connect
 
 ## Requirements
 
-- Windows only - macOS and Linux are not supported
+- Windows or macOS
 - Ableton Live 12.2.7 or newer
 - Python 3.12 or newer
 - [uv](https://docs.astral.sh/uv/) package manager
@@ -23,7 +23,8 @@ AbletonMCP connects Claude to a live Ableton session over a local socket connect
 ```
 AbletonMCP\
 ├── server_arrangement.py        - MCP server entry point
-├── deploy.ps1                   - Deploy script (copies files to Ableton + Claude Code worktrees)
+├── deploy.ps1                   - Deploy script, Windows (copies files to Ableton + Claude Code worktrees)
+├── deploy.sh                    - Deploy script, macOS/Linux (same job)
 ├── ableton\
 │   ├── connection.py            - TCP connection to Ableton
 │   ├── tools_session.py         - Session + global MCP tools
@@ -50,30 +51,39 @@ The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude
 
 ### Step 1 - Clone the repo
 
-Clone this repo to your PC. This gives you both folders:
+Clone this repo to the machine running Ableton. This gives you both folders:
 
-- `ableton/` - the MCP server package, stays where you cloned it and runs on your PC
+- `ableton/` - the MCP server package, stays where you cloned it and runs on your machine
 - `AbletonMCPLocal/` - the Ableton Remote Script, needs to be copied into Ableton in Step 2
 
-```powershell
+```bash
 git clone https://github.com/windmonarch/AbletonMCP
 ```
 
 ### Step 2 - Install the Remote Script
 
-Run the deploy script from the repo folder:
+Run the deploy script from the repo folder.
+
+**Windows:**
 
 ```powershell
 .\deploy.ps1
 ```
 
+**macOS / Linux:**
+
+```bash
+./deploy.sh
+```
+
 This automatically copies all 7 remote script files to your Ableton User Library at:
 
 ```
-C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
+Windows:  C:\Users\[Username]\Documents\Ableton\User Library\Remote Scripts\AbletonMCPLocal\
+macOS:    ~/Music/Ableton/User Library/Remote Scripts/AbletonMCPLocal/
 ```
 
-> **Important:** Ableton scans `Documents\Ableton\User Library\Remote Scripts`. Do NOT deploy to the AppData path - Ableton does not scan it.
+> **Important:** Ableton scans the **User Library**. On Windows do NOT deploy to the AppData path, and on macOS do NOT deploy to `~/Library/Application Support` - Ableton does not scan either. On macOS the `Remote Scripts` folder may not exist yet; `deploy.sh` creates it for you.
 
 If you prefer to copy manually, paste the entire `AbletonMCPLocal` folder (all 7 files) into the path above.
 
@@ -82,6 +92,8 @@ Then in Ableton: **Preferences -> Link, Tempo & MIDI -> Control Surface** - sele
 ### Step 3 - Configure Claude Code
 
 Create a `.mcp.json` file inside the cloned repo folder. Use the full absolute path to `server_arrangement.py` in both `args` and `cwd`, replacing the example path with wherever you cloned the repo:
+
+**Windows:**
 
 ```json
 {
@@ -95,7 +107,23 @@ Create a `.mcp.json` file inside the cloned repo folder. Use the full absolute p
 }
 ```
 
-> **Note:** Windows paths in JSON require double backslashes `\\`. Use an absolute path for the script in `args` - this prevents Claude Code from accidentally running a stale copy from a git worktree.
+**macOS / Linux:**
+
+```json
+{
+  "mcpServers": {
+    "AbletonMCP": {
+      "command": "uv",
+      "args": ["run", "--with", "mcp[cli]", "/Users/john/Projects/AbletonMCP/server_arrangement.py"],
+      "cwd": "/Users/john/Projects/AbletonMCP"
+    }
+  }
+}
+```
+
+> **Note:** Windows paths in JSON require double backslashes `\\`; POSIX paths use forward slashes as-is. Use an absolute path for the script in `args` - this prevents Claude Code from accidentally running a stale copy from a git worktree.
+>
+> If `uv` is not on the PATH that Claude Code inherits, use its absolute path as `command` (for example `/Users/john/.local/bin/uv`).
 
 ### Step 4 - Start Claude Code
 
@@ -251,10 +279,14 @@ These operations are not possible via the Live Python API and must be done manua
 
 ## Deploying changes
 
-If you modify any server or remote script files, run `deploy.ps1` from the project root to push all changes to the right places:
+If you modify any server or remote script files, run the deploy script from the project root to push all changes to the right places:
 
 ```powershell
-.\deploy.ps1
+.\deploy.ps1     # Windows
+```
+
+```bash
+./deploy.sh      # macOS / Linux
 ```
 
 This script:
@@ -271,21 +303,21 @@ After running, restart Ableton to pick up remote script changes. Claude Code rec
 
 If you have modified the remote script files and Ableton is not picking up your changes:
 
-1. Run `.\deploy.ps1` to copy files and clear `__pycache__`
+1. Run the deploy script (`.\deploy.ps1` on Windows, `./deploy.sh` on macOS/Linux) to copy files and clear `__pycache__`
 2. Do a full Ableton restart
 
 Ableton caches compiled bytecode in `__pycache__` and also caches modules in `sys.modules` at runtime. Toggling the control surface to None and back is not sufficient to clear either cache - only a full restart picks up changes to `.py` files.
 
 ### New MCP tools not appearing in Claude Code
 
-Claude Code creates git worktrees when opening a project. The MCP server may be running from a worktree directory that has stale copies of the server files. Run `.\deploy.ps1` to sync all server files to all active worktrees, then restart Claude Code.
+Claude Code creates git worktrees when opening a project. The MCP server may be running from a worktree directory that has stale copies of the server files. Run the deploy script to sync all server files to all active worktrees, then restart Claude Code.
 
 The `.mcp.json` uses an absolute path for the server script to help prevent this, but the worktree sync is the reliable fix if tools are missing.
 
 ### MCP server fails to start
 
 Make sure:
-- `uv` is installed and available on your PATH
+- `uv` is installed and available on your PATH (or `command` in `.mcp.json` uses its absolute path)
 - The `cwd` in `.mcp.json` points to the correct folder (where `pyproject.toml` lives)
 - You are running Python 3.12 or newer (`uv python list` to check)
 
@@ -294,7 +326,7 @@ Make sure:
 Make sure:
 - Ableton is open and `AbletonMCPLocal` is selected as the Control Surface
 - No other application is using port 9877
-- The `__pycache__` in the deployed folder is not stale (run `.\deploy.ps1` and restart Ableton)
+- The `__pycache__` in the deployed folder is not stale (run the deploy script and restart Ableton)
 
 ---
 

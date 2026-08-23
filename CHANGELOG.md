@@ -6,6 +6,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.0] - 2026-08-22
+
+### Added
+
+**macOS support**
+- `deploy.sh` - macOS/Linux counterpart to `deploy.ps1`. Same three jobs (clear `__pycache__`, copy the 7 remote script files, sync server files to active Claude Code worktrees) with matching `--skip-ableton` / `--skip-worktrees` flags, plus `--help`.
+- The macOS deploy target is `~/Music/Ableton/User Library/Remote Scripts/AbletonMCPLocal`. `deploy.sh` creates the `Remote Scripts` folder if Ableton has not made it yet.
+
+### Changed
+
+- **The "Windows only" claim is withdrawn.** The server and remote script were already platform-neutral - the transport is plain `socket.AF_INET`/`SOCK_STREAM` on `localhost:9877` with no platform APIs. Only the deploy script, the README and `.mcp.json` path syntax were Windows-specific. Verified working on macOS 15 with Ableton Live 12 Standard: all 68 tools register, and read, write and undo round-trip against a live session.
+- `README.md` - platform requirements, project structure, clone step, deploy steps, both `.mcp.json` examples, the deploying-changes section and four troubleshooting references now cover Windows and macOS/Linux side by side.
+- `AbletonMCPLocal/__init__.py` - the header comment now names both the macOS and Windows User Library paths.
+
+### Fixed
+
+- **Stale `uv.lock` version** - the lock file declared `version = "1.3.0"` while `pyproject.toml` declared `1.5.0`. Same drift that `93997b8` fixed once before; it regressed at v1.4.0.
+
+### Internal
+
+- No changes to `ableton/` or to any command handler. The 68-tool surface is untouched.
+- Plugin URIs are portable across platforms - they derive from vendor and plugin names, not filesystem paths, so `query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive` resolves identically on macOS and Windows.
+- macOS exposes a third plugin format folder, `AUv2`, alongside `VST` and `VST3`. `_find_plugin_by_name` needs no change: `_PLUGIN_FORMAT_PRIORITY` ranks by substring, so the effective order becomes VST3, then VST, then AUv2 as the fallback bucket. VST3 still wins, and AU-only plugins stay reachable by name.
+
+---
+
 ## [1.5.0] - 2026-05-09
 
 ### Added
