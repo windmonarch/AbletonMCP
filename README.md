@@ -41,6 +41,8 @@ AbletonMCP\
     ├── commands_devices.py      - Device command handlers
     ├── commands_scenes.py       - Scene command handlers
     └── commands_automation.py   - Automation envelope command handlers
+└── tests\
+    └── test_device_paths.py     - Offline tests for device-path commands (fake Live objects)
 ```
 
 The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPLocal/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
@@ -236,7 +238,30 @@ Return tracks use a separate index (0 = first return track, e.g. A-Reverb). They
 | `set_device_parameter` | Set a device parameter value by parameter index |
 | `delete_device` | Remove a device from a track by index |
 | `get_drum_pads` | List all pads in a Drum Rack with their note and name |
-| `get_rack_devices` | List all devices nested inside a rack's chains (Audio Effect Rack, Instrument Rack, etc.) |
+| `get_rack_devices` | List devices inside a rack's chains, optionally recursing into nested racks (`depth`); every device carries its `path` |
+| `get_device_parameters_at_path` | List all parameters of any device, including ones nested inside racks, addressed by device path |
+| `set_device_parameter_at_path` | Set a parameter on any device by device path, by parameter name or index |
+
+Parameter listings include `display_value` (as Live shows it, e.g. `4.00 : 1`, `50.0 ms`, `6.00 kHz`) alongside the raw `value`. Setters take the raw value and echo the new display value back.
+
+**Device paths**
+
+Devices nested inside racks are addressed by a path that alternates device and chain indices, starting and ending on a device:
+
+| Path | Device |
+|---|---|
+| `[2]` | Third top-level device on the track |
+| `[0, 4, 0]` | Rack at device 0 → chain 4 → first device |
+| `[0, 0, 4, 0, 0]` | Rack at device 0 → chain 0 → sub-rack 4 → its chain 0 → first device |
+
+Find paths with `get_rack_devices(track_index, device_index, depth=2, include_parameters=False)`, then read or set:
+
+```
+get_device_parameters_at_path(track_index=3, path=[0, 0, 4, 0, 0])
+set_device_parameter_at_path(track_index=3, path=[0, 0, 4, 0, 0], param_name="Ratio", value=0.6)
+```
+
+`param_name` is a case-insensitive exact match. An unknown or ambiguous name is an error (with suggestions), never a guess. The path tools and `get_rack_devices` also take `track_type="return"` or `"master"` to reach return-track and master-track devices.
 
 ### Browser
 | Tool | What it does |

@@ -21,6 +21,7 @@ MODIFYING_COMMANDS: set = {
     "fire_clip",
     "stop_clip",
     "set_device_parameter",
+    "set_device_parameter_at_path",
     "start_playback",
     "stop_playback",
     "load_instrument_or_effect",

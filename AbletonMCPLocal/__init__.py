@@ -80,7 +80,8 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "get_clip_notes":            lambda p: self._get_clip_notes(p.get("track_index", 0), p.get("clip_index", 0)),
             "get_device_parameters":     lambda p: self._get_device_parameters(p.get("track_index", 0), p.get("device_index", 0)),
             "get_drum_pads":             lambda p: self._get_drum_pads(p.get("track_index", 0), p.get("device_index", 0)),
-            "get_rack_devices":          lambda p: self._get_rack_devices(p.get("track_index", 0), p.get("device_index", 0)),
+            "get_rack_devices":          lambda p: self._get_rack_devices(p.get("track_index", 0), p.get("device_index", 0), p.get("depth", 1), p.get("include_parameters", True), p.get("track_type", "track"), p.get("path")),
+            "get_device_parameters_at_path": lambda p: self._get_device_parameters_at_path(p.get("track_index", 0), p.get("path"), p.get("track_type", "track")),
             "get_scenes":                lambda p: self._get_scenes(),
             "get_clip_envelope":         lambda p: self._get_clip_envelope(p.get("track_index", 0), p.get("clip_index", 0), p.get("device_index", 0), p.get("param_index", 0)),
         }
@@ -123,6 +124,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "set_clip_gain":          lambda p: self._set_clip_gain(p.get("track_index", 0), p.get("clip_index", 0), p.get("gain", 1.0)),
             "set_clip_markers":       lambda p: self._set_clip_markers(p.get("track_index", 0), p.get("clip_index", 0), p.get("start_marker", 0.0), p.get("end_marker", 0.0)),
             "set_device_parameter":   lambda p: self._set_device_parameter(p.get("track_index", 0), p.get("device_index", 0), p.get("param_index", 0), p.get("value", 0.0)),
+            "set_device_parameter_at_path": lambda p: self._set_device_parameter_at_path(p.get("track_index", 0), p.get("path"), p.get("value"), p.get("param_index"), p.get("param_name"), p.get("track_type", "track")),
             # Song level
             "set_time_signature":     lambda p: self._set_time_signature(p.get("numerator", 4), p.get("denominator", 4)),
             "jump_to_time":           lambda p: self._jump_to_time(p.get("time", 0.0)),

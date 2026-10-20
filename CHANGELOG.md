@@ -6,6 +6,31 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.7.0] - 2026-10-19
+
+### Added
+
+**Nested device addressing**
+- Device paths - a list alternating device and chain indices (`[device, chain, device, ...]`) that walks `rack.chains[c].devices[d]` to any depth. Unblocks devices inside sub-racks, e.g. a de-esser Compressor two levels down in a vocal processing rack, which no tool could previously read or set.
+- `get_device_parameters_at_path(track_index, path, track_type)` - all parameters of the device at a path, with display strings, min/max display strings, `value_items` for quantized parameters, and a chain summary when the device is itself a rack.
+- `set_device_parameter_at_path(track_index, path, value, param_index | param_name, track_type)` - set by parameter index or by name (case-insensitive exact match). Unknown names fail with suggestions, duplicate names fail and ask for an index, and a mismatched index/name pair is rejected. Returns the previous and new raw and display values.
+- `track_type` (`"track"`, `"return"`, `"master"`) on the path tools and `get_rack_devices`, so return-track and master-track devices are reachable too.
+- `tests/test_device_paths.py` - stdlib `unittest` suite with fake Live objects covering path resolution, name lookup and recursive rack listing. Run with `python3 -m unittest discover tests`.
+
+### Changed
+
+- `get_rack_devices` gains `depth` (default 1, the previous behaviour), `include_parameters` (default true) and `path` (start from a nested rack). Every listed device now includes its `path` and `can_have_chains`; racks at the depth limit report `chain_count`.
+- Parameter listings from `get_device_parameters`, `get_rack_devices` and the new path tools add `display_value` (via `DeviceParameter.str_for_value`), `is_quantized`, and `value_items` for quantized parameters. `set_device_parameter` also returns `display_value`. All changes are additive; existing keys and arguments are unchanged.
+
+### Internal
+
+- 70 tools (was 68).
+- `set_device_parameter_at_path` added to `MODIFYING_COMMANDS` in `ableton/connection.py` and to `WRITE_DISPATCH` (main thread); `get_device_parameters_at_path` added to `READ_DISPATCH`.
+- New `DeviceCommands` helpers: `_resolve_track`, `_resolve_device_path`, `_param_display`, `_serialize_parameter`, `_find_parameter`.
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and restart Ableton.
+
+---
+
 ## [1.6.0] - 2026-08-22
 
 ### Added
