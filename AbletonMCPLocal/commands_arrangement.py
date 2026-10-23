@@ -1,9 +1,11 @@
 # AbletonMCPLocal/commands_arrangement.py
 # Handlers for Arrangement View commands.
-# NOTE: create_arrangement_clip and delete_arrangement_clip are NOT implemented.
-# The Live ControlSurface Python API exposes no method to create or delete
-# arrangement clips - users must do this manually in Ableton's Arrangement View.
+# NOTE: create_arrangement_audio_clip uses Track.create_audio_clip, which exists
+# in the Live 12 API only. MIDI arrangement clip creation and clip deletion are
+# still not implemented.
 from __future__ import absolute_import, print_function, unicode_literals
+
+import os
 
 
 class ArrangementCommands:
@@ -61,6 +63,35 @@ class ArrangementCommands:
             raise IndexError("Arrangement clip index out of range")
         arr_clips[clip_index].name = name
         return {"name": arr_clips[clip_index].name}
+
+    def _create_arrangement_audio_clip(self, track_index, file_path, start_time, name=""):
+        """Place an audio file as a clip in the Arrangement View (Live 12+)."""
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        if track.is_foldable or track.has_midi_input:
+            raise ValueError("Track '%s' is not an audio track" % track.name)
+        if not hasattr(track, "create_audio_clip"):
+            raise RuntimeError("This Live version has no Track.create_audio_clip (requires Live 12)")
+        if not file_path or not os.path.isfile(file_path):
+            raise ValueError("Audio file not found: %s" % file_path)
+        clip = track.create_audio_clip(file_path, float(start_time))
+        if clip is None:
+            matches = [c for c in track.arrangement_clips
+                       if abs(c.start_time - float(start_time)) < 1e-6]
+            clip = matches[0] if matches else None
+        if clip is None:
+            raise RuntimeError("Clip was not created")
+        if name:
+            clip.name = name
+        return {
+            "track_name": track.name,
+            "name": clip.name,
+            "start_time": clip.start_time,
+            "end_time": clip.end_time,
+            "length": clip.end_time - clip.start_time,
+            "file_path": file_path,
+        }
 
     # -------------------------------------------------------------------------
     # Cue points / song time
