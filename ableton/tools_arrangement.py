@@ -52,6 +52,38 @@ def register(mcp: FastMCP):
             return f"Error adding notes to arrangement clip: {str(e)}"
 
     @mcp.tool()
+    def create_arrangement_audio_clip(
+        ctx: Context,
+        track_index: int,
+        file_path: str,
+        start_time: float,
+        name: str = ""
+    ) -> str:
+        """
+        Place an audio file as a clip in the Arrangement View (requires Live 12).
+
+        The clip's length is the file's length at the session tempo (warped files
+        follow the tempo). Overlapping an existing clip on the same track replaces
+        that region, as when dropping audio in Live.
+
+        Parameters:
+        - track_index: The index of an audio track
+        - file_path: Absolute path to a WAV/AIFF/etc. file on this machine
+        - start_time: Position in beats from the start of the arrangement
+        - name: Optional clip name
+        """
+        try:
+            result = get_ableton_connection().send_command("create_arrangement_audio_clip", {
+                "track_index": track_index,
+                "file_path": file_path,
+                "start_time": start_time,
+                "name": name,
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error creating arrangement audio clip: {str(e)}"
+
+    @mcp.tool()
     def set_arrangement_clip_name(
         ctx: Context,
         track_index: int,

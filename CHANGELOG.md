@@ -6,6 +6,34 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.0] - 2026-10-23
+
+### Added
+
+**Arrangement audio clip placement**
+- `create_arrangement_audio_clip(track_index, file_path, start_time, name)` - places an audio file on an audio track in the Arrangement View at a beat position and optionally names the clip. Returns the created clip's name, start/end time and length so the placement can be verified. Built on `Track.create_audio_clip`, which the Live 12 API added; earlier Live versions get a clear error instead of a failure.
+- First use: laying out 34 named placeholder transition sounds (sweeps, risers, reverses, crashes, impacts, fills) across a full song so the producer can swap in final samples at known positions and lengths.
+- `tests/test_arrangement_clips.py` - offline `unittest` cases with fake Live objects: success path with naming, MIDI/group-track rejection, missing file, out-of-range track, and the pre-Live-12 error.
+
+### Changed
+
+- The "creating an arrangement clip is impossible" limitation now applies to MIDI clips only. README tool table and limitations section updated.
+
+### Notes
+
+- Overlapping an existing clip on the same track replaces that region, the same as dropping audio in Live. The command does not check for overlaps; plan positions so clips don't collide.
+- Read clip lengths back after placing. In testing, 33 of 34 clips landed at their file length exactly; one 5-beat file was placed as a 4-beat clip.
+- Validation happens before calling Live: the track must be a non-group audio track and the file must exist on disk.
+
+### Internal
+
+- 71 tools (was 70).
+- `create_arrangement_audio_clip` added to `WRITE_DISPATCH` (runs on Live's main thread) and to `MODIFYING_COMMANDS` in `ableton/connection.py`.
+- New handler `ArrangementCommands._create_arrangement_audio_clip`. Falls back to locating the clip by start time if `create_audio_clip` returns `None`.
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and fully quit and relaunch Ableton. Toggling the control surface off and on re-runs the script's init but keeps the old modules cached, so new commands still return "Unknown command".
+
+---
+
 ## [1.7.0] - 2026-10-19
 
 ### Added

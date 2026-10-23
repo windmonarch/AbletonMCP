@@ -13,6 +13,7 @@ logger = logging.getLogger("AbletonMCPServer")
 MODIFYING_COMMANDS: set = {
     "create_midi_track",
     "create_audio_track",
+    "create_arrangement_audio_clip",
     "set_track_name",
     "create_clip",
     "add_notes_to_clip",
