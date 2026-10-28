@@ -1,8 +1,8 @@
 # AbletonMCPLocal/commands_arrangement.py
 # Handlers for Arrangement View commands.
-# NOTE: create_arrangement_audio_clip uses Track.create_audio_clip, which exists
-# in the Live 12 API only. MIDI arrangement clip creation and clip deletion are
-# still not implemented.
+# NOTE: create_arrangement_audio_clip and create_arrangement_midi_clip use
+# Track.create_audio_clip / Track.create_midi_clip, which exist in the Live 12
+# API only. Clip deletion is still not implemented.
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os
@@ -91,6 +91,47 @@ class ArrangementCommands:
             "end_time": clip.end_time,
             "length": clip.end_time - clip.start_time,
             "file_path": file_path,
+        }
+
+    def _create_arrangement_midi_clip(self, track_index, start_time, length, name="", notes=None):
+        """Create an empty MIDI clip in the Arrangement View (Live 12+), optionally with notes.
+
+        Note start times are in beats from the clip start, as in add_notes_to_arrangement_clip.
+        """
+        if track_index < 0 or track_index >= len(self._song.tracks):
+            raise IndexError("Track index out of range")
+        track = self._song.tracks[track_index]
+        if track.is_foldable or not track.has_midi_input:
+            raise ValueError("Track '%s' is not a MIDI track" % track.name)
+        if not hasattr(track, "create_midi_clip"):
+            raise RuntimeError("This Live version has no Track.create_midi_clip (requires Live 12)")
+        if float(length) <= 0:
+            raise ValueError("length must be greater than 0")
+        clip = track.create_midi_clip(float(start_time), float(length))
+        if clip is None:
+            matches = [c for c in track.arrangement_clips
+                       if abs(c.start_time - float(start_time)) < 1e-6]
+            clip = matches[0] if matches else None
+        if clip is None:
+            raise RuntimeError("Clip was not created")
+        if name:
+            clip.name = name
+        if notes:
+            clip.set_notes(tuple(
+                (n.get("pitch", 60), n.get("start_time", 0.0),
+                 n.get("duration", 0.25), n.get("velocity", 100), n.get("mute", False))
+                for n in notes
+            ))
+        index = next((i for i, c in enumerate(track.arrangement_clips)
+                      if abs(c.start_time - clip.start_time) < 1e-6), None)
+        return {
+            "track_name": track.name,
+            "clip_index": index,
+            "name": clip.name,
+            "start_time": clip.start_time,
+            "end_time": clip.end_time,
+            "length": clip.end_time - clip.start_time,
+            "note_count": len(notes) if notes else 0,
         }
 
     # -------------------------------------------------------------------------

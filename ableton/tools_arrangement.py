@@ -84,6 +84,41 @@ def register(mcp: FastMCP):
             return f"Error creating arrangement audio clip: {str(e)}"
 
     @mcp.tool()
+    def create_arrangement_midi_clip(
+        ctx: Context,
+        track_index: int,
+        start_time: float,
+        length: float,
+        name: str = "",
+        notes: List[Dict[str, Union[int, float, bool]]] = None
+    ) -> str:
+        """
+        Create a MIDI clip in the Arrangement View, optionally filled with notes (requires Live 12).
+
+        Returns the new clip's arrangement clip_index, so follow-up calls can address it.
+        The command does not check for overlaps; plan positions so clips don't collide.
+
+        Parameters:
+        - track_index: The index of a MIDI track
+        - start_time: Position in beats from the start of the arrangement
+        - length: Clip length in beats
+        - name: Optional clip name
+        - notes: Optional list of note dicts - each needs: pitch (MIDI 0-127), start_time (beats
+                 from clip start), duration (beats), velocity (0-127), mute (bool, optional)
+        """
+        try:
+            result = get_ableton_connection().send_command("create_arrangement_midi_clip", {
+                "track_index": track_index,
+                "start_time": start_time,
+                "length": length,
+                "name": name,
+                "notes": notes or [],
+            })
+            return json.dumps(result, indent=2)
+        except Exception as e:
+            return f"Error creating arrangement MIDI clip: {str(e)}"
+
+    @mcp.tool()
     def set_arrangement_clip_name(
         ctx: Context,
         track_index: int,

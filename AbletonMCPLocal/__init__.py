@@ -89,6 +89,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
         self.WRITE_DISPATCH = {
             "create_midi_track":              lambda p: self._create_midi_track(p.get("index", -1)),
             "create_arrangement_audio_clip":  lambda p: self._create_arrangement_audio_clip(p.get("track_index", 0), p.get("file_path", ""), p.get("start_time", 0.0), p.get("name", "")),
+            "create_arrangement_midi_clip":   lambda p: self._create_arrangement_midi_clip(p.get("track_index", 0), p.get("start_time", 0.0), p.get("length", 4.0), p.get("name", ""), p.get("notes")),
             "set_track_name":                 lambda p: self._set_track_name(p.get("track_index", 0), p.get("name", "")),
             "create_clip":                    lambda p: self._create_clip(p.get("track_index", 0), p.get("clip_index", 0), p.get("length", 4.0)),
             "add_notes_to_clip":              lambda p: self._add_notes_to_clip(p.get("track_index", 0), p.get("clip_index", 0), p.get("notes", [])),

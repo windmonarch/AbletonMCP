@@ -186,6 +186,7 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 | `add_notes_to_arrangement_clip` | Write MIDI notes into an Arrangement View clip |
 | `set_arrangement_clip_name` | Rename an Arrangement View clip |
 | `create_arrangement_audio_clip` | Place an audio file as a clip on an audio track at a beat position (Live 12+) |
+| `create_arrangement_midi_clip` | Create a MIDI clip on a MIDI track at a beat position, optionally with notes (Live 12+) |
 | `get_clip_notes` | Read back all MIDI notes from an Arrangement View clip |
 | `remove_notes_from_clip` | Clear all notes from an Arrangement View clip |
 | `set_clip_color` | Set a clip's color by RGB integer |
@@ -296,7 +297,7 @@ VST3 is always preferred over VST2 when loading by plugin name. Both formats wor
 
 These operations are not possible via the Live Python API and must be done manually:
 
-- **Creating an arrangement MIDI clip** - double-click in the Arrangement View to draw a clip. (Audio files can be placed with `create_arrangement_audio_clip` on Live 12+.)
+- **Creating arrangement clips on Live 11 or earlier** - double-click in the Arrangement View to draw a clip. On Live 12+, use `create_arrangement_midi_clip` and `create_arrangement_audio_clip`.
 - **Deleting an arrangement clip** - select the clip and press Delete
 - **Deleting a return track** - right-click the return track header and select Delete
 - **Creating new clip automation envelopes on arrangement clips** - `set_clip_envelope_point` requires an existing envelope. Right-click the parameter in Ableton and choose Show Automation in Clip to draw the first breakpoint manually, then the tool can insert additional points.
