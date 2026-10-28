@@ -14,6 +14,9 @@ def register(mcp: FastMCP):
         """
         Get all clips currently placed in the Arrangement View for a track.
 
+        Each clip reports its index, name, start/end time, length, playing state and
+        muted (deactivated) state; audio clips also report their source file_path.
+
         Parameters:
         - track_index: The index of the track to inspect
         """

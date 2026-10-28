@@ -6,6 +6,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.10.0] - 2026-10-27
+
+### Added
+
+**Clip mute state and source file in `get_arrangement_clips`**
+- Each clip now reports `muted` (Live's clip activator, the 0 key). Clip mutes were previously invisible to the MCP; only track mutes could be read, so a sweep of the arrangement could not tell which clips had been switched off.
+- Audio clips also report `file_path`, the source file on disk. A sample already placed in the arrangement can now be copied to new positions with `create_arrangement_audio_clip` without searching the disk for it (pack and library samples are often not indexed by Spotlight).
+- 1 new offline test in `tests/test_arrangement_clips.py` (37 total).
+
+### Notes
+
+- First use: documenting a final-listen pass on the How to Die transitions, where FX clips had been muted by ear across 3 of 11 transitions.
+- `file_path` is omitted for MIDI clips. Field additions only; existing keys are unchanged.
+
+### Internal
+
+- 72 tools (unchanged).
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and fully quit and relaunch Ableton.
+
+---
+
 ## [1.9.0] - 2026-10-27
 
 ### Added

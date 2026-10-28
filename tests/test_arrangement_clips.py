@@ -192,5 +192,30 @@ class CreateArrangementMidiClipTests(unittest.TestCase):
             Host([LegacyMidiTrack()])._create_arrangement_midi_clip(0, 0.0, 4.0)
 
 
+class ListedClip:
+    def __init__(self, start, length, muted=False, file_path=None):
+        self.name = "Crash"
+        self.start_time = start
+        self.end_time = start + length
+        self.length = length
+        self.is_playing = False
+        self.muted = muted
+        self.is_audio_clip = file_path is not None
+        if file_path is not None:
+            self.file_path = file_path
+
+
+class GetArrangementClipsTests(unittest.TestCase):
+    def test_reports_muted_and_audio_file_path(self):
+        track = FakeAudioTrack()
+        track.arrangement_clips = [ListedClip(64.0, 4.0, muted=True, file_path="/s/crash.wav"),
+                                   ListedClip(104.0, 4.0)]
+        clips = Host([track])._get_arrangement_clips(0)["clips"]
+        self.assertTrue(clips[0]["muted"])
+        self.assertEqual(clips[0]["file_path"], "/s/crash.wav")
+        self.assertFalse(clips[1]["muted"])
+        self.assertNotIn("file_path", clips[1])
+
+
 if __name__ == "__main__":
     unittest.main()
