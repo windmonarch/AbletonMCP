@@ -18,17 +18,20 @@ class ArrangementCommands:
         track = self._song.tracks[track_index]
         if track.is_foldable:
             return {"clips": [], "count": 0}
-        clips = [
-            {
+        clips = []
+        for i, clip in enumerate(track.arrangement_clips):
+            info = {
                 "index": i,
                 "name": clip.name,
                 "start_time": clip.start_time,
                 "end_time": clip.end_time,
                 "length": clip.length,
                 "is_playing": clip.is_playing,
+                "muted": clip.muted,
             }
-            for i, clip in enumerate(track.arrangement_clips)
-        ]
+            if getattr(clip, "is_audio_clip", False):
+                info["file_path"] = clip.file_path
+            clips.append(info)
         return {"clips": clips, "count": len(clips)}
 
     def _add_notes_to_arrangement_clip(self, track_index, clip_index, notes):

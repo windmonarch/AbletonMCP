@@ -182,7 +182,7 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 ### Arrangement View clips
 | Tool | What it does |
 |---|---|
-| `get_arrangement_clips` | List all clips on a track in the Arrangement View |
+| `get_arrangement_clips` | List all clips on a track in the Arrangement View, with position, length, mute state and (audio) source file |
 | `add_notes_to_arrangement_clip` | Write MIDI notes into an Arrangement View clip |
 | `set_arrangement_clip_name` | Rename an Arrangement View clip |
 | `create_arrangement_audio_clip` | Place an audio file as a clip on an audio track at a beat position (Live 12+) |
