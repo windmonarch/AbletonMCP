@@ -6,6 +6,33 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.9.0] - 2026-10-27
+
+### Added
+
+**Arrangement MIDI clip creation**
+- `create_arrangement_midi_clip(track_index, start_time, length, name, notes)` - creates a MIDI clip on a MIDI track in the Arrangement View at a beat position, optionally names it and fills it with notes in one call. Note times are beats from the clip start, the same as `add_notes_to_arrangement_clip`. Returns the new clip's `clip_index`, start/end time and length so follow-up calls can address it without a separate lookup. Built on `Track.create_midi_clip` from the Live 12 API; earlier Live versions get a clear error.
+- First use: render lanes for custom Vital transition sounds (risers, impacts) without drawing empty clips by hand.
+- 9 new offline tests in `tests/test_arrangement_clips.py`: empty and note-filled clips, index reporting among existing clips, the `None`-return fallback, audio/group-track rejection, zero length, out-of-range track, and the pre-Live-12 error.
+
+### Changed
+
+- README: the "creating an arrangement clip" limitation now applies only to Live 11 and earlier.
+
+### Notes
+
+- Verified in Live 12.4.6: two 4-beat clips created on a MIDI track with a G1 note each; positions, names, returned `clip_index` and notes all read back as written.
+- The command does not check for overlaps with existing clips on the track.
+- Arrangement clip indices shift when a clip is added earlier on the track; use the returned `clip_index` straight away or re-read with `get_arrangement_clips`.
+
+### Internal
+
+- 72 tools (was 71).
+- `create_arrangement_midi_clip` added to `WRITE_DISPATCH` and `MODIFYING_COMMANDS`.
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and fully quit and relaunch Ableton.
+
+---
+
 ## [1.8.0] - 2026-10-23
 
 ### Added
