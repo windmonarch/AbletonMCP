@@ -1,7 +1,7 @@
 # ableton/tools_session.py
 # MCP tools for Session View operations (clips, playback, tracks).
 import json
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 from mcp.server.fastmcp import FastMCP, Context
 from .connection import get_ableton_connection
 
@@ -407,6 +407,11 @@ def register(mcp: FastMCP):
         """
         Get all send levels for a track.
 
+        Each send reports `value` (the normalized knob position, 0.0-1.0),
+        `display_value` (what Live shows, e.g. "-22.0 dB") and `db` (that level
+        as a number, -Infinity when off). Quote `db` when describing a level:
+        Live's send taper is steep, so value 0.10 is about -54.6 dB.
+
         Parameters:
         - track_index: The index of the track
         """
@@ -422,19 +427,31 @@ def register(mcp: FastMCP):
         ctx: Context,
         track_index: int,
         send_index: int,
-        value: float
+        value: Optional[float] = None,
+        db: Optional[float] = None
     ) -> str:
         """
         Set the send level for a track to a return track.
 
+        Pass exactly one of `db` or `value`. Prefer `db`: it sets the level Live
+        displays (e.g. -22 for a room send at -22 dB). `value` is the raw knob
+        position from 0.0 to 1.0, which is not linear in dB.
+
         Parameters:
         - track_index: The index of the track
         - send_index: The index of the send (corresponds to return track order)
-        - value: Send level from 0.0 to 1.0
+        - value: Raw knob position from 0.0 to 1.0
+        - db: Send level in dB (0 dB is the maximum; -inf turns the send off)
+
+        Returns the send's new value, display_value and db.
         """
         try:
-            result = get_ableton_connection().send_command("set_track_send", {
-                "track_index": track_index, "send_index": send_index, "value": value})
+            params = {"track_index": track_index, "send_index": send_index}
+            if db is not None:
+                params["db"] = db
+            if value is not None:
+                params["value"] = value
+            result = get_ableton_connection().send_command("set_track_send", params)
             return json.dumps(result, indent=2)
         except Exception as e:
             return f"Error setting track send: {str(e)}"
