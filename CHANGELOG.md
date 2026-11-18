@@ -6,6 +6,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.11.0] - 2026-10-28
+
+### Changed
+
+**Send levels in dB**
+- `get_track_sends` now reports each send's `display_value` (what Live shows, e.g. `"-22.0 dB"`) and `db` (that level as a number, `-inf` when off), alongside the existing `value`.
+- `set_track_send` takes either `db` or `value`. With `db` it finds the knob position whose displayed level matches, by binary search over Live's own `str_for_value`, so the result tracks Live's taper exactly instead of a hard-coded curve. Targets above the send maximum are rejected; `-inf` turns the send off. The response now includes `display_value` and `db`.
+- 8 new offline tests in `tests/test_track_sends.py` (46 total).
+
+### Why
+
+- `value` is the normalized knob position, and Live's send taper is steep: 0.10 displays as **-54.6 dB**. Send levels recommended and set as 0.xx values on How to Die (Lead A-ROOM "0.10") came out effectively silent, and nothing in the old response showed it.
+
+### Notes
+
+- Verified in Live 12.4.6: Lead A-ROOM read back as `-54.6 dB` (matching the GUI); `db=-22`, `-20` and `-32` landed on exactly `-22.0`, `-20.0` and `-32.0 dB`; `db=3` was rejected as above the 0 dB maximum.
+- Existing callers that pass `value` are unchanged. `value` is now optional, and passing both or neither is an error.
+- Return-track and master sends are not covered; only `get_track_sends` / `set_track_send`.
+
+### Internal
+
+- 72 tools (unchanged).
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and fully quit and relaunch Ableton.
+
+---
+
 ## [1.10.0] - 2026-10-27
 
 ### Added

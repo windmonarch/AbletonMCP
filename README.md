@@ -163,8 +163,8 @@ Make sure Ableton is open with the `AbletonMCPLocal` control surface active befo
 | `set_track_arm` | Arm or disarm a track for recording |
 | `set_track_volume` | Set track volume (0.0 to 1.0) |
 | `set_track_pan` | Set track panning (-1.0 left to 1.0 right) |
-| `get_track_sends` | List all send amounts for a track |
-| `set_track_send` | Set a send amount for a track to a return track |
+| `get_track_sends` | List a track's sends, with each level in dB as Live displays it |
+| `set_track_send` | Set a send to a return track, in dB (`db`) or as a raw 0-1 knob position (`value`) |
 
 ### Playback
 | Tool | What it does |

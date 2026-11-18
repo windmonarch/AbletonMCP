@@ -118,7 +118,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "set_track_arm":          lambda p: self._set_track_arm(p.get("track_index", 0), p.get("arm", False)),
             "set_track_volume":       lambda p: self._set_track_volume(p.get("track_index", 0), p.get("volume", 0.85)),
             "set_track_pan":          lambda p: self._set_track_pan(p.get("track_index", 0), p.get("panning", 0.0)),
-            "set_track_send":         lambda p: self._set_track_send(p.get("track_index", 0), p.get("send_index", 0), p.get("value", 0.0)),
+            "set_track_send":         lambda p: self._set_track_send(p.get("track_index", 0), p.get("send_index", 0), p.get("value"), p.get("db")),
             "delete_device":          lambda p: self._delete_device(p.get("track_index", 0), p.get("device_index", 0)),
             "remove_notes_from_clip": lambda p: self._remove_notes_from_clip(p.get("track_index", 0), p.get("clip_index", 0)),
             "set_clip_color":         lambda p: self._set_clip_color(p.get("track_index", 0), p.get("clip_index", 0), p.get("color", 0)),

@@ -260,25 +260,99 @@ class SessionCommands:
     # Send routing
     # -------------------------------------------------------------------------
 
+    # Send .value is the normalized knob position (0.0-1.0), not a level: Live's
+    # send taper is steep, so 0.10 displays as about -54.6 dB. Reads report the
+    # dB that Live shows, and writes can target a dB level directly.
+
+    @staticmethod
+    def _send_display(send, value=None):
+        """Live's display string for a send value, e.g. "-54.6 dB" or "-inf dB"."""
+        if value is None:
+            value = send.value
+        try:
+            return send.str_for_value(value)
+        except Exception:
+            pass
+        if value == send.value:
+            try:
+                return str(send)
+            except Exception:
+                pass
+        return None
+
+    @staticmethod
+    def _parse_db(text):
+        """Parse a dB display string to a float; "-inf dB" -> -inf, unparseable -> None."""
+        if not text:
+            return None
+        token = text.strip().split(" ")[0]
+        if token.lower() in ("-inf", "-∞"):
+            return float("-inf")
+        try:
+            return float(token)
+        except ValueError:
+            return None
+
+    def _send_db(self, send, value=None):
+        return self._parse_db(self._send_display(send, value))
+
+    def _send_value_for_db(self, send, db):
+        """Normalized send value whose displayed level is closest to db.
+
+        Binary search over the send's range; Live's taper is monotonic.
+        """
+        lo, hi = send.min, send.max
+        top = self._send_db(send, hi)
+        if top is None:
+            raise RuntimeError("Live did not report a dB display for send '%s'" % send.name)
+        if db > top + 0.05:
+            raise ValueError("%.1f dB is above the send maximum of %.1f dB" % (db, top))
+        if db == float("-inf") or db <= (self._send_db(send, lo) or float("-inf")):
+            return lo
+        for _ in range(50):
+            mid = (lo + hi) / 2.0
+            mid_db = self._send_db(send, mid)
+            if mid_db is None:
+                raise RuntimeError("Live did not report a dB display for send '%s'" % send.name)
+            if mid_db < db:
+                lo = mid
+            else:
+                hi = mid
+        return hi
+
+    def _serialize_send(self, index, send):
+        display = self._send_display(send)
+        return {
+            "index": index,
+            "name": send.name,
+            "value": send.value,
+            "display_value": display,
+            "db": self._parse_db(display),
+        }
+
     def _get_track_sends(self, track_index):
         if track_index < 0 or track_index >= len(self._song.tracks):
             raise IndexError("Track index out of range")
         track = self._song.tracks[track_index]
-        sends = [
-            {"index": i, "name": send.name, "value": send.value}
-            for i, send in enumerate(track.mixer_device.sends)
-        ]
+        sends = [self._serialize_send(i, send) for i, send in enumerate(track.mixer_device.sends)]
         return {"sends": sends, "count": len(sends)}
 
-    def _set_track_send(self, track_index, send_index, value):
+    def _set_track_send(self, track_index, send_index, value=None, db=None):
         if track_index < 0 or track_index >= len(self._song.tracks):
             raise IndexError("Track index out of range")
+        if (value is None) == (db is None):
+            raise ValueError("Pass exactly one of value (0.0-1.0) or db")
         track = self._song.tracks[track_index]
         sends = list(track.mixer_device.sends)
         if send_index < 0 or send_index >= len(sends):
             raise IndexError("Send index out of range")
-        sends[send_index].value = value
-        return {"send_index": send_index, "value": sends[send_index].value}
+        send = sends[send_index]
+        if db is not None:
+            value = self._send_value_for_db(send, float(db))
+        send.value = value
+        result = self._serialize_send(send_index, send)
+        result["send_index"] = send_index
+        return result
 
     # -------------------------------------------------------------------------
     # Song-level controls
