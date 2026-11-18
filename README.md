@@ -30,19 +30,21 @@ AbletonMCP\
 │   ├── tools_session.py         - Session + global MCP tools
 │   ├── tools_arrangement.py     - Arrangement View MCP tools
 │   ├── tools_browser.py         - Browser MCP tools
-│   ├── tools_devices.py         - Device and drum pad MCP tools
+│   ├── tools_devices.py         - Device, drum pad and nested device-path MCP tools
 │   ├── tools_scenes.py          - Scene management MCP tools
 │   └── tools_automation.py      - Clip automation envelope MCP tools
-└── AbletonMCPLocal\
-    ├── __init__.py              - Ableton Remote Script entry point
-    ├── commands_session.py      - Session command handlers
-    ├── commands_arrangement.py  - Arrangement View command handlers
-    ├── commands_browser.py      - Browser command handlers
-    ├── commands_devices.py      - Device command handlers
-    ├── commands_scenes.py       - Scene command handlers
-    └── commands_automation.py   - Automation envelope command handlers
+├── AbletonMCPLocal\
+│   ├── __init__.py              - Ableton Remote Script entry point
+│   ├── commands_session.py      - Session command handlers
+│   ├── commands_arrangement.py  - Arrangement View command handlers
+│   ├── commands_browser.py      - Browser command handlers
+│   ├── commands_devices.py      - Device command handlers
+│   ├── commands_scenes.py       - Scene command handlers
+│   └── commands_automation.py   - Automation envelope command handlers
 └── tests\
-    └── test_device_paths.py     - Offline tests for device-path commands (fake Live objects)
+    ├── test_device_paths.py     - Device-path resolution and parameter lookup
+    ├── test_arrangement_clips.py - Arrangement audio/MIDI clip creation and clip listing
+    └── test_track_sends.py      - Send levels in dB
 ```
 
 The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPLocal/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
@@ -320,7 +322,17 @@ This script:
 1. Deletes `__pycache__` in the Ableton deployed folder and copies all 7 remote script files there
 2. Syncs `ableton/*.py` and `server_arrangement.py` to all active Claude Code worktrees
 
-After running, restart Ableton to pick up remote script changes. Claude Code reconnects automatically on next use.
+After running, **fully quit and relaunch Ableton** to pick up remote script changes - toggling the control surface off and on is not enough (see Troubleshooting). Claude Code reconnects automatically on next use.
+
+---
+
+## Running tests
+
+The `tests/` suites use stdlib `unittest` with fake Live objects, so they need neither Ableton nor the MCP server:
+
+```bash
+python3 -m unittest discover tests
+```
 
 ---
 
