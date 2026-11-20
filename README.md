@@ -41,6 +41,7 @@ AbletonMCP\
 │   ├── commands_devices.py      - Device command handlers
 │   ├── commands_scenes.py       - Scene command handlers
 │   └── commands_automation.py   - Automation envelope command handlers
+├── plugin\ableton\              - Claude plugin with the "ableton" skill (upload to claude.ai)
 └── tests\
     ├── test_device_paths.py     - Device-path resolution and parameter lookup
     ├── test_arrangement_clips.py - Arrangement audio/MIDI clip creation and clip listing
@@ -344,6 +345,18 @@ The `tests/` suites use stdlib `unittest` with fake Live objects, so they need n
 
 ```bash
 python3 -m unittest discover tests
+```
+
+---
+
+## Claude skill
+
+`plugin/ableton/` holds the `ableton` skill that tells Claude how to use these tools: the tool list, track addressing (`track_type`), working conventions (bar.beat positions, sends in dB) and known read caveats. When a release adds or changes tools, update `plugin/ableton/skills/ableton/SKILL.md` in the same PR.
+
+To publish it, zip the folder's contents and upload the zip to claude.ai, replacing the existing `ableton` plugin:
+
+```bash
+cd plugin/ableton && zip -r ../../dist/ableton-plugin.zip .claude-plugin skills
 ```
 
 ---
