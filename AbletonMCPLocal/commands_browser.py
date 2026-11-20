@@ -41,22 +41,57 @@ class BrowserCommands:
     # Public / internal loading helpers
     # ---------------------------------------------------------------------------
 
-    def _load_browser_item(self, track_index, item_uri):
-        if track_index < 0 or track_index >= len(self._song.tracks):
-            raise IndexError("Track index out of range")
-        track = self._song.tracks[track_index]
-        app = self.application()
-        item = self._find_browser_item_by_uri(app.browser, item_uri)
-        if not item:
-            raise ValueError("Browser item with URI '{0}' not found".format(item_uri))
-        self._song.view.selected_track = track
-        app.browser.load_item(item)
+    def _find_loadable_item(self, browser, item_uri):
+        """Find a browser item by exact URI, falling back to a plugin-name
+        search (VST3 preferred over VST2). Raises if neither matches."""
+        item = self._find_browser_item_by_uri(browser, item_uri)
+        if item is None:
+            item = self._find_plugin_by_name(browser, item_uri)
+        if item is None:
+            raise RuntimeError("Browser item not found: " + str(item_uri))
+        return item
+
+    def _resolve_load_target(self, command_type, params):
+        """Return (track, track_type) for a browser-load command.
+
+        load_effect_on_return_track always targets a return track by
+        return_track_index. load_browser_item takes track_index plus an
+        optional track_type ("track", "return" or "master"); track_index is
+        ignored for master. Uses DeviceCommands._resolve_track.
+        """
+        if command_type == "load_effect_on_return_track":
+            track_type = "return"
+            index = params.get("return_track_index", 0)
+        else:
+            track_type = (params.get("track_type") or "track").lower()
+            index = params.get("track_index", 0)
+        return self._resolve_track(index, track_type), track_type
+
+    def _load_result(self, item, item_uri, track, track_type):
+        # The load already happened; a failed device read must not turn it into an error.
+        try:
+            devices_after = [d.name for d in track.devices]
+        except Exception:
+            devices_after = []
         return {
             "loaded": True,
-            "item_name": item.name,
-            "track_name": track.name,
             "uri": item_uri,
+            "item_name": item.name if hasattr(item, "name") else item_uri,
+            "track_name": track.name,
+            "track_type": track_type,
+            "devices_after": devices_after,
         }
+
+    def _load_browser_item(self, track_index, item_uri, track_type="track"):
+        """Single-thread load (the socket path uses _execute_browser_load,
+        which splits browser search and load_item across threads)."""
+        track, track_type = self._resolve_load_target(
+            "load_browser_item", {"track_index": track_index, "track_type": track_type})
+        app = self.application()
+        item = self._find_loadable_item(app.browser, item_uri)
+        self._song.view.selected_track = track
+        app.browser.load_item(item)
+        return self._load_result(item, item_uri, track, track_type)
 
     # ---------------------------------------------------------------------------
     # URI resolution - fast path first, recursive fallback second

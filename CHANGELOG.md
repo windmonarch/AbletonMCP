@@ -6,6 +6,38 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.12.0] - 2026-11-19
+
+### Added
+
+**Load devices onto the Master track**
+- `load_instrument_or_effect` takes an optional `track_type`: `"track"` (default), `"return"` or `"master"`. With `"master"`, `track_index` is ignored and the item loads onto `song.master_track`. Same resolver as the device-path tools (`_resolve_track`).
+- The URI fast path and plugin-name fallback (VST3 preferred over VST2) work for every target, so `uri="Ozone Imager 2"` loads onto Master without looking up the URI first.
+- The load response now reports `track_type` and `devices_after` (the target's device names after the load); `devices_after` was read by the tool but never sent before, so the tool's "Devices:" list was always empty.
+
+**`delete_device` on returns and Master**
+- `delete_device` takes the same `track_type`. Leftover devices on return tracks and the Master can now be removed; previously only regular tracks were reachable. The response names the deleted device and the track.
+
+- 13 new offline tests in `tests/test_device_loading.py` (59 total).
+
+### Why
+
+- Setting up a new mixing session on 2026-11-19, the Master chain (Utility, Ozone Imager 2, SPAN, Youlean, Limiter) had to be loaded by driving Ableton's UI with full-screen computer control, because no MCP command could target the Master.
+
+### Notes
+
+- Existing calls are unchanged: `track_type` defaults to `"track"`, and `load_effect_on_return_track` still works (it now goes through the same target resolver).
+- Loads append to the end of the target chain; load a Master chain in signal-flow order.
+- README: the VST3 example used `item_uri=`; the tool's parameter is `uri`. Fixed.
+
+### Internal
+
+- 72 tools (unchanged; `track_type` is a new argument, not a new tool).
+- Browser-load target resolution and item lookup moved into `BrowserCommands._resolve_load_target` / `_find_loadable_item`, shared by the socket path (`_execute_browser_load`) and the single-thread loaders, so they are testable offline.
+- Remote Script change: run `deploy.sh` / `deploy.ps1` and fully quit and relaunch Ableton.
+
+---
+
 ## [1.11.0] - 2026-11-17
 
 ### Changed

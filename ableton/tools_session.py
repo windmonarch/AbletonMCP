@@ -261,6 +261,7 @@ def register(mcp: FastMCP):
     def load_effect_on_return_track(ctx: Context, return_track_index: int, item_uri: str) -> str:
         """
         Load a plugin or effect onto a return track by browser URI.
+        (Same as load_instrument_or_effect with track_type="return"; use track_type="master" for the Master track.)
 
         Parameters:
         - return_track_index: The index of the return track (0 = first return track)
@@ -457,18 +458,20 @@ def register(mcp: FastMCP):
             return f"Error setting track send: {str(e)}"
 
     @mcp.tool()
-    def delete_device(ctx: Context, track_index: int, device_index: int) -> str:
+    def delete_device(ctx: Context, track_index: int, device_index: int, track_type: str = "track") -> str:
         """
-        Delete a device from a track's device chain.
+        Delete a device from a track's, return track's or the Master track's device chain.
 
         Parameters:
-        - track_index: The index of the track
+        - track_index: The index of the track (or return track when track_type="return"; ignored for master)
         - device_index: The index of the device to delete
+        - track_type: "track" (default), "return" or "master"
         """
         try:
             result = get_ableton_connection().send_command("delete_device", {
-                "track_index": track_index, "device_index": device_index})
-            return f"Deleted device. Track now has {result.get('device_count')} device(s)."
+                "track_index": track_index, "device_index": device_index, "track_type": track_type})
+            return (f"Deleted '{result.get('device_name')}' from {result.get('track_name')}. "
+                    f"It now has {result.get('device_count')} device(s).")
         except Exception as e:
             return f"Error deleting device: {str(e)}"
 

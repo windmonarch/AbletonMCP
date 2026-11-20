@@ -374,14 +374,21 @@ class SessionCommands:
     # Device deletion
     # -------------------------------------------------------------------------
 
-    def _delete_device(self, track_index, device_index):
-        if track_index < 0 or track_index >= len(self._song.tracks):
-            raise IndexError("Track index out of range")
-        track = self._song.tracks[track_index]
+    def _delete_device(self, track_index, device_index, track_type="track"):
+        # _resolve_track lives in DeviceCommands: "track", "return" or "master".
+        track = self._resolve_track(track_index, track_type)
         if device_index < 0 or device_index >= len(track.devices):
-            raise IndexError("Device index out of range")
+            raise IndexError("Device index {0} out of range ({1} has {2} devices)".format(
+                device_index, track.name, len(track.devices)))
+        name = track.devices[device_index].name
         track.delete_device(device_index)
-        return {"deleted": True, "device_count": len(track.devices)}
+        return {
+            "deleted": True,
+            "device_name": name,
+            "track_name": track.name,
+            "track_type": (track_type or "track").lower(),
+            "device_count": len(track.devices),
+        }
 
     # -------------------------------------------------------------------------
     # Return track commands
@@ -395,28 +402,8 @@ class SessionCommands:
         return {"name": track.name}
 
     def _load_effect_on_return_track(self, return_track_index, item_uri):
-        if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):
-            raise IndexError("Return track index out of range")
-        track = self._song.return_tracks[return_track_index]
-        app = self.application()
-        if not app:
-            raise RuntimeError("Could not access Live application")
-        # Try exact URI match first (covers native effects + VST3/VST2 URIs).
-        item = self._find_browser_item_by_uri(app.browser, item_uri)
-        # Fallback: treat item_uri as a plain plugin name and search by name
-        # with VST3 preferred over VST2.
-        if item is None:
-            item = self._find_plugin_by_name(app.browser, item_uri)
-        if item is None:
-            raise RuntimeError("Browser item not found: " + str(item_uri))
-        self._song.view.selected_track = track
-        app.browser.load_item(item)
-        return {
-            "loaded": True,
-            "uri": item_uri,
-            "item_name": item.name if hasattr(item, "name") else item_uri,
-            "track_name": track.name,
-        }
+        """Single-thread load (the socket path uses _execute_browser_load)."""
+        return self._load_browser_item(return_track_index, item_uri, track_type="return")
 
     def _get_return_track_info(self, return_track_index):
         if return_track_index < 0 or return_track_index >= len(self._song.return_tracks):

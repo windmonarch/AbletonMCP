@@ -119,7 +119,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             "set_track_volume":       lambda p: self._set_track_volume(p.get("track_index", 0), p.get("volume", 0.85)),
             "set_track_pan":          lambda p: self._set_track_pan(p.get("track_index", 0), p.get("panning", 0.0)),
             "set_track_send":         lambda p: self._set_track_send(p.get("track_index", 0), p.get("send_index", 0), p.get("value"), p.get("db")),
-            "delete_device":          lambda p: self._delete_device(p.get("track_index", 0), p.get("device_index", 0)),
+            "delete_device":          lambda p: self._delete_device(p.get("track_index", 0), p.get("device_index", 0), p.get("track_type", "track")),
             "remove_notes_from_clip": lambda p: self._remove_notes_from_clip(p.get("track_index", 0), p.get("clip_index", 0)),
             "set_clip_color":         lambda p: self._set_clip_color(p.get("track_index", 0), p.get("clip_index", 0), p.get("color", 0)),
             "set_clip_pitch":         lambda p: self._set_clip_pitch(p.get("track_index", 0), p.get("clip_index", 0), p.get("pitch_coarse", 0), p.get("pitch_fine")),
@@ -251,24 +251,12 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
 
         item_uri = params.get("item_uri", "")
 
-        # Phase 1: find the browser item here in the client thread (fast).
-        item = self._find_browser_item_by_uri(app.browser, item_uri)
-        if item is None:
-            item = self._find_plugin_by_name(app.browser, item_uri)
-        if item is None:
-            raise RuntimeError("Browser item not found: " + str(item_uri))
+        # Phase 1: resolve the target track first (client thread, safe read),
+        # so a bad index fails fast without a browser walk.
+        track, track_type = self._resolve_load_target(command_type, params)
 
-        # Phase 2: resolve the target track (still client thread, safe read).
-        if command_type == "load_effect_on_return_track":
-            idx = params.get("return_track_index", 0)
-            if idx < 0 or idx >= len(self._song.return_tracks):
-                raise IndexError("Return track index out of range")
-            track = self._song.return_tracks[idx]
-        else:  # load_browser_item
-            idx = params.get("track_index", 0)
-            if idx < 0 or idx >= len(self._song.tracks):
-                raise IndexError("Track index out of range")
-            track = self._song.tracks[idx]
+        # Phase 2: find the browser item here in the client thread (fast).
+        item = self._find_loadable_item(app.browser, item_uri)
 
         # Phase 3: schedule only load_item() to the main thread (UI call, very fast).
         response_queue = queue.Queue()
@@ -277,7 +265,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
             try:
                 self._song.view.selected_track = track
                 app.browser.load_item(item)
-                response_queue.put({"ok": True})
+                response_queue.put({"ok": True, "result": self._load_result(item, item_uri, track, track_type)})
             except Exception as e:
                 response_queue.put({"ok": False, "error": str(e)})
 
@@ -290,12 +278,7 @@ class AbletonMCPLocal(SessionCommands, ArrangementCommands, BrowserCommands, Dev
         if not resp.get("ok"):
             raise RuntimeError(resp.get("error", "load_item failed on main thread"))
 
-        return {
-            "loaded": True,
-            "uri": item_uri,
-            "item_name": item.name if hasattr(item, "name") else item_uri,
-            "track_name": track.name,
-        }
+        return resp["result"]
 
     def _process_command(self, command):
         command_type = command.get("type", "")

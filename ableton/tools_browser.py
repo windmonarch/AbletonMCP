@@ -63,20 +63,26 @@ def register(mcp: FastMCP):
             return f"Error getting browser items: {str(e)}"
 
     @mcp.tool()
-    def load_instrument_or_effect(ctx: Context, track_index: int, uri: str) -> str:
+    def load_instrument_or_effect(ctx: Context, track_index: int, uri: str, track_type: str = "track") -> str:
         """
-        Load an instrument or effect onto a track using its URI.
+        Load an instrument or effect onto a track, a return track or the Master track.
 
         Parameters:
-        - track_index: The index of the track to load the instrument on
-        - uri: The URI of the instrument or effect to load
+        - track_index: The index of the track (or return track when track_type="return"; ignored for master)
+        - uri: The browser URI of the item to load (use get_browser_items_at_path to find URIs).
+          A plain plugin name (e.g. "Ozone Imager 2") also works; VST3 is preferred over VST2.
+        - track_type: "track" (default), "return" or "master"
+
+        Example: load Utility onto the Master track:
+          load_instrument_or_effect(track_index=0, uri="query:AudioFx#Utility", track_type="master")
         """
         try:
             result = get_ableton_connection().send_command("load_browser_item", {
-                "track_index": track_index, "item_uri": uri})
+                "track_index": track_index, "item_uri": uri, "track_type": track_type})
             if result.get("loaded", False):
                 devices = result.get("devices_after", [])
-                return f"Loaded '{uri}' on track {track_index}. Devices: {', '.join(devices)}"
+                return (f"Loaded '{result.get('item_name', uri)}' on {result.get('track_name')}"
+                        f" ({result.get('track_type', track_type)}). Devices: {', '.join(devices)}")
             return f"Failed to load '{uri}'"
         except Exception as e:
             return f"Error loading instrument: {str(e)}"
