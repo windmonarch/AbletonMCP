@@ -1,0 +1,5 @@
+{
+  "name": "ableton",
+  "version": "1.12.0",
+  "description": "Control and interact with Ableton Live via the AbletonMCP server (v1.12.0, 72 tools): read the session, create tracks and clips, write MIDI, place arrangement clips, load devices and plugins onto tracks, returns or the Master, set parameters, sends in dB, automation, scenes, locators and playback."
+}

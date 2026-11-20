@@ -6,6 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- `plugin/ableton/`: the `ableton` Claude skill, now kept in the repo. Rewritten for v1.12.0: all 72 tools, `track_type` addressing (Master is "Main" in Live 12), macOS install paths and deploy/restart steps, sends in dB, bar.beat positions, and the known read caveats. The previously uploaded version dated from April 2026 and described the upstream Windows setup with 16 tools.
+
+---
+
 ## [1.12.0] - 2026-11-19
 
 ### Added
