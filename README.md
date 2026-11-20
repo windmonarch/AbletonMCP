@@ -44,7 +44,8 @@ AbletonMCP\
 └── tests\
     ├── test_device_paths.py     - Device-path resolution and parameter lookup
     ├── test_arrangement_clips.py - Arrangement audio/MIDI clip creation and clip listing
-    └── test_track_sends.py      - Send levels in dB
+    ├── test_track_sends.py      - Send levels in dB
+    └── test_device_loading.py   - Loading devices onto tracks, returns and Master; deleting them
 ```
 
 The MCP server (`server_arrangement.py` + `ableton/`) runs on your PC and Claude connects to it. The Remote Script (`AbletonMCPLocal/`) runs inside Ableton Live and receives commands over a local socket on port 9877.
@@ -240,7 +241,7 @@ Return tracks use a separate index (0 = first return track, e.g. A-Reverb). They
 |---|---|
 | `get_device_parameters` | List all parameters for a device on a track |
 | `set_device_parameter` | Set a device parameter value by parameter index |
-| `delete_device` | Remove a device from a track by index |
+| `delete_device` | Remove a device by index from a track, return track (`track_type="return"`) or the Master (`track_type="master"`) |
 | `get_drum_pads` | List all pads in a Drum Rack with their note and name |
 | `get_rack_devices` | List devices inside a rack's chains, optionally recursing into nested racks (`depth`); every device carries its `path` |
 | `get_device_parameters_at_path` | List all parameters of any device, including ones nested inside racks, addressed by device path |
@@ -272,7 +273,7 @@ set_device_parameter_at_path(track_index=3, path=[0, 0, 4, 0, 0], param_name="Ra
 |---|---|
 | `get_browser_tree` | Browse available instruments, effects, samples, and plugins |
 | `get_browser_items_at_path` | List items at a specific browser path (supports `plugins/VST3`, `plugins/VST`, `audio_effects`, `instruments`, `packs`, etc.) |
-| `load_instrument_or_effect` | Load a native effect or VST3/VST2 plugin onto a track by URI |
+| `load_instrument_or_effect` | Load a native effect or VST3/VST2 plugin by URI onto a track, a return track (`track_type="return"`) or the Master (`track_type="master"`) |
 | `load_drum_kit` | Load a drum rack and kit onto a track |
 
 **Loading VST3 and VST2 plugins**
@@ -283,8 +284,19 @@ Use `get_browser_items_at_path` to find the exact URI for any plugin, then pass 
 get_browser_items_at_path("plugins/VST3/Valhalla DSP")
 -> returns URI: query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive
 
-load_instrument_or_effect(track_index=0, item_uri="query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive")
+load_instrument_or_effect(track_index=0, uri="query:Plugins#VST3:Valhalla%20DSP:ValhallaSupermassive")
 ```
+
+**Loading onto the Master track**
+
+Pass `track_type="master"` (`track_index` is ignored). A plain plugin name works in place of a URI:
+
+```
+load_instrument_or_effect(track_index=0, uri="query:AudioFx#Utility", track_type="master")
+load_instrument_or_effect(track_index=0, uri="Ozone Imager 2", track_type="master")
+```
+
+Each load appends to the end of the Master chain, so load in signal-flow order (e.g. Utility, Ozone Imager 2, SPAN, Youlean, Limiter). Remove a stray device with `delete_device(track_index=0, device_index=N, track_type="master")`.
 
 VST3 is always preferred over VST2 when loading by plugin name. Both formats work with `load_instrument_or_effect`, `load_drum_kit`, and `load_effect_on_return_track`.
 
